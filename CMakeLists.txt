@@ -7,8 +7,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON) # -fPIC
 project(uppaal_libs CXX)
 
 add_custom_target(data
-        COMMAND cp ${CMAKE_SOURCE_DIR}/table.csv ${PROJECT_BINARY_DIR}/table_input.csv
-        DEPENDS table.csv
+        COMMAND cp ${CMAKE_SOURCE_DIR}/table_input.csv ${PROJECT_BINARY_DIR}/table_input.csv
+        DEPENDS table_input.csv
         BYPRODUCTS table_input.csv)
 
 add_library(table SHARED table.cpp)

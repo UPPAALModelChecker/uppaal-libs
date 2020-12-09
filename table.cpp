@@ -3,9 +3,16 @@
 #include <fstream>
 #include <cmath> // nan
 
+#include <unistd.h> // getcwd
+
 using namespace std::string_literals;
 
-static const auto err = std::string{"./libtable.log"};
+static const auto current_dir = [] {
+  	char buffer[512];
+  	getcwd(buffer, 512);
+  	return std::string{buffer};
+}();
+static const auto err = current_dir + "/libtable.log";
 
 static auto table = table_t{};
 
@@ -18,7 +25,8 @@ static auto table = table_t{};
 static void read_table(const char* csv_path)
 {
 	auto is = std::ifstream{csv_path};
-	if (!is)
+	is.peek();
+	if (!is || is.eof())
 		log_error(err, "failed to open: "s + csv_path);
 	table = read_table(is); // empty table in case of errors
 }
@@ -36,8 +44,8 @@ static void write_table(const char* csv_path)
 extern "C" void __ON_CONSTRUCT__()
 {
 	auto default_csv_path = getenv("UPPAAL_TABLE_INPUT");
-	auto csv_path = default_csv_path ? default_csv_path : "./table_input.csv";
-	read_table(csv_path);
+	auto csv_path = default_csv_path ? default_csv_path : current_dir+"/table_input.csv";
+	read_table(csv_path.c_str());
 }
 
 /** Called before the library is unloaded */
@@ -145,6 +153,6 @@ extern "C" void write_int(int row, int col, int value)
 extern "C" void export_table()
 {
 	auto default_csv_path = getenv("UPPAAL_TABLE_OUTPUT");
-	auto csv_path = default_csv_path ? default_csv_path : "./table_output.csv";
-	write_table(csv_path);
+	auto csv_path = default_csv_path ? default_csv_path : current_dir+"/table_output.csv";
+	write_table(csv_path.c_str());
 }

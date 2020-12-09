@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<nta>
+	<declaration>import "/home/marius/work/UPPAAL/uppaal-libs/libtable.so" {
+    int get_rows(); // the number of rows in the table
+    int get_cols(); // the number of columns in the table
+	double read_double(int row, int col); // read at row:col
+	void write_double(int row, int col, double value); // write at row:col
+	void export_table(); // dump the table content to a file
+};
+
+const int rows = get_rows();
+const int cols = get_cols();
+
+/*
+double table[rows][cols];
+
+void read_all(){
+  if (rows&gt;0 &amp;&amp; cols&gt;0) {
+     for (i : int[0,rows-1])
+        for (j : int[0,cols-1])
+           table[i][j] = read_double(i,j);
+  }
+}
+*/</declaration>
+	<template>
+		<name x="5" y="5">Template</name>
+		<declaration>// Place local declarations here.</declaration>
+		<location id="id0" x="127" y="0">
+		</location>
+		<location id="id1" x="0" y="0">
+			<urgent/>
+		</location>
+		<init ref="id1"/>
+		<transition>
+			<source ref="id1"/>
+			<target ref="id0"/>
+		</transition>
+	</template>
+	<system>// Place template instantiations here.
+Process = Template();
+// List one or more processes to be composed into a system.
+system Process;
+    </system>
+	<queries>
+		<query>
+			<formula>simulate 1 [&lt;=10] { rows, cols }</formula>
+			<comment></comment>
+		</query>
+		<query>
+			<formula>//simulate 1 [&lt;=10] {table[0][0], table[0][1], table[0,2]}</formula>
+			<comment></comment>
+		</query>
+	</queries>
+</nta>
