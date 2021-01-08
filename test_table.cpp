@@ -16,7 +16,6 @@ int main()
 		auto write_double = lib.lookup<fn_int_int_double>("write_double");
 		auto resize = lib.lookup<fn_int_int_double>("resize");
 		auto export_table = lib.lookup<fn_void>("export_table");
-		lib.on_begin();
 		auto rows = get_rows();
 		auto cols = get_cols();
 		if (rows == 0 || cols == 0)
@@ -31,7 +30,6 @@ int main()
 		write_double(1, 1, 3.141);
 		if (3.141 != read_double(1,1))
 			throw std::runtime_error("expected 3.141 at 1:1");
-		lib.on_end();
 		resize(rows+1, cols+1, 2.7);
 		if (2.7 != read_double(rows,cols))
 			throw std::runtime_error("expected 2.7 at new corner");

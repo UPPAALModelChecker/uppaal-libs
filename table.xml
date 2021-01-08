@@ -2,6 +2,7 @@
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
 <nta>
 	<declaration>import "/home/marius/work/UPPAAL/uppaal-libs/libtable.so" {
+    int read_table(const string&amp; filename);
     int get_rows(); // the number of rows in the table
     int get_cols(); // the number of columns in the table
 	double read_double(int row, int col); // read at row:col
@@ -9,6 +10,7 @@
 	void export_table(); // dump the table content to a file
 };
 
+const int size = read_table("/home/marius/work/UPPAAL/uppaal-libs/table_input.csv");
 const int rows = get_rows();
 const int cols = get_cols();
 
@@ -44,7 +46,7 @@ system Process;
     </system>
 	<queries>
 		<query>
-			<formula>simulate 1 [&lt;=10] { rows, cols }</formula>
+			<formula>simulate 1 [&lt;=10] { size, rows, cols }</formula>
 			<comment></comment>
 		</query>
 		<query>

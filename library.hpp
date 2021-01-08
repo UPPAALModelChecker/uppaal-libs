@@ -12,26 +12,19 @@
  * Methods may throw runtime_error upon errors. */
 class UppaalLibrary
 {
+	void* handle; // library handle
+
 public:
-	using fn_ptr = void(*)();
-	fn_ptr on_begin;     // mark the beginning of a new simulation
-	fn_ptr on_end;       // mark the ending of the simulation
 
 	UppaalLibrary(const char* filepath):
 		handle{dlopen(filepath, RTLD_LAZY | RTLD_LOCAL)}
 	{
 		if (!handle)
 			throw std::runtime_error(dlerror());
-		on_construct = lookup<fn_ptr>("__ON_CONSTRUCT__");
-		on_destruct = lookup<fn_ptr>("__ON_DESTRUCT__");
-		on_begin = lookup<fn_ptr>("__ON_BEGIN__");
-		on_end = lookup<fn_ptr>("__ON_END__");
-		on_construct();
 	}
 	~UppaalLibrary() noexcept
 	{
-		if (!handle) {
-			on_destruct();
+		if (handle) {
 			dlclose(handle);
 			handle = nullptr;
 		}
@@ -50,10 +43,6 @@ public:
 			throw std::runtime_error(dlerror());
 		return res;
 	}
-private:
-	void* handle; // library handle
-	fn_ptr on_construct; // allocate resources (prepare)
-	fn_ptr on_destruct;  // deallocate resources (cleanup)
 };
 
 #endif /* LIBRARY_HPP */

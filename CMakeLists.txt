@@ -11,9 +11,12 @@ add_custom_target(data
         DEPENDS table_input.csv
         BYPRODUCTS table_input.csv)
 
+add_library(errors OBJECT errors.cpp)
+
 add_library(table SHARED table.cpp)
 target_compile_options(table PRIVATE -Wall -Wextra)
 target_link_options(table PRIVATE -static-libstdc++ -static-libgcc -rdynamic)
+target_link_libraries(table errors)
 add_dependencies(table data)
 
 add_executable(test_table test_table.cpp)

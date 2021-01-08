@@ -14,56 +14,44 @@ static const auto current_dir = [] {
 }();
 static const auto err = current_dir + "/libtable.log";
 
-static auto table = table_t{};
+extern "C" int read_table(const char* csv_path);
+
+static auto table = [] {
+	auto default_csv_path = getenv("UPPAAL_TABLE_INPUT");
+	auto csv_path = default_csv_path ? default_csv_path : current_dir + "/table_input.csv";
+	auto is = std::ifstream{csv_path};
+	return read_csv_table(is);
+}();
 
 /**
  * The exported C library functions must be marked as `extern "C"`.
  * Other (internally linked) functions can be C, C++ -- anything (decided at compile-time).
  */
 
-/** Internal: loads the table from CSV file */
-static void read_table(const char* csv_path)
+/** loads the table from CSV file, returns the number of rows in the table, or -1 on error */
+extern "C" int read_table(const char* csv_path)
 {
 	auto is = std::ifstream{csv_path};
+	log_err("trying to read: %s", csv_path);
 	is.peek();
-	if (!is || is.eof())
-		log_error(err, "failed to open: "s + csv_path);
-	table = read_table(is); // empty table in case of errors
+	if (!is || is.eof()) {
+		log_err("failed to read: %s", csv_path);
+		return -1;
+	}
+	table = read_csv_table(is); // empty table in case of errors
+	return table.size();
 }
 
-/** Internal: writes the table to CSV file */
-static void write_table(const char* csv_path)
+/** writes the table to CSV file, returns the number of rows, or -1 on error */
+extern "C" int write_table(const char* csv_path)
 {
 	auto os = std::ofstream{csv_path};
-	if (!os)
-		log_error(err, "failed to open: "s + csv_path);
+	if (!os) {
+		log_err("failed to write: %s", csv_path);
+		return -1;
+	}
 	write_csv(os, table, ',');
-}
-
-/** Called when the library is loaded */
-extern "C" void __ON_CONSTRUCT__()
-{
-	auto default_csv_path = getenv("UPPAAL_TABLE_INPUT");
-	auto csv_path = default_csv_path ? default_csv_path : current_dir+"/table_input.csv";
-	read_table(csv_path.c_str());
-}
-
-/** Called before the library is unloaded */
-extern "C" void __ON_DESTRUCT__()
-{
-	table.clear();
-}
-
-/*** Called before simulation start */
-extern "C" void __ON_BEGIN__()
-{}
-
-/** Called when simulation is finished */
-extern "C" void __ON_END__()
-{
-	auto csv_path = getenv("UPPAAL_TABLE_EXPORT");
-	if (csv_path)
-		write_table(csv_path);
+	return table.size();
 }
 
 /** User function: get the number of rows in the table */
@@ -77,7 +65,7 @@ extern "C" int get_rows()
 extern "C" int get_cols()
 {
 	if (table.empty()) {
-		log_error(err, "table is empty");
+		log_err("%s", "table is empty");
 		return 0;
 	}
 	return table.front().size();
@@ -110,7 +98,7 @@ extern "C" double read_double(int row, int col)
 	try {
 		return access(row, col);
 	} catch (std::runtime_error& e) {
-		log_error(err, e.what());
+		log_err("%s", e.what());
 	}
 	return std::nan("");
 }
@@ -124,11 +112,11 @@ extern "C" int read_int(int row, int col)
 extern "C" void resize(int rows, int cols, elem_t value)
 {
 	if (rows < 0) {
-		log_error(err, "number of rows cannot be negative");
+		log_err("negative row number: %d", rows);
 		return;
 	}
 	if (cols < 0) {
-		log_error(err, "number of columns cannot be negative");
+		log_err("negative column number: %d", cols);
 		return;
 	}
 	table.resize(rows);
@@ -141,7 +129,7 @@ extern "C" void write_double(int row, int col, double value)
 	try {
 		access(row, col) = value;
 	} catch (std::runtime_error& e) {
-		log_error(err, e.what());
+		log_err("%s", e.what());
 	}
 }
 

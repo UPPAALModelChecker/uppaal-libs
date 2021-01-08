@@ -6,13 +6,8 @@
 #ifndef ERRORS_HPP
 #define ERRORS_HPP
 
-#include <fstream>
+#define log_err(format, ...) log_error(format, __FUNCTION__, __FILE__, __LINE__, __VA_ARGS__)
 
-void log_error(const std::string& fn, const std::string& message)
-{
-	auto log = std::ofstream{fn, std::ios::ate | std::ios::app};
-	log << message << '\n';
-}
-
+void log_error(const char* format, const char* function, const char* path, int line, ...);
 
 #endif /* ERRORS_HPP */

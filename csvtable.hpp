@@ -15,7 +15,7 @@ using row_t = std::vector<elem_t>;
 using table_t = std::vector<row_t>;
 using dictionary_t = std::unordered_map<elem_t,std::vector<elem_t>>;
 
-table_t read_table(std::istream& is)
+table_t read_csv_table(std::istream& is)
 {
 	auto table = table_t{};
 	auto elem = elem_t{};
@@ -30,7 +30,7 @@ table_t read_table(std::istream& is)
 	return table;
 }
 
-dictionary_t read_map(std::istream& is)
+dictionary_t read_csv_map(std::istream& is)
 {
 	auto dictionary = dictionary_t{};
 	auto elem = elem_t{};
