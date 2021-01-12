@@ -6,7 +6,7 @@
 #include <unistd.h> // getcwd
 
 extern "C" int table_new(int rows, int cols);
-extern "C" int table_read_csv(const char* csv_path);
+extern "C" int table_read_csv(const char* csv_path, int skip_lines);
 extern "C" int table_write_csv(int id, const char* csv_path);
 extern "C" int table_copy(int id);
 extern "C" int table_clear(int id);
@@ -41,7 +41,7 @@ extern "C" int table_new(int rows, int cols)
  */
 
 /** loads the table from CSV file, returns the table id, or -1 on error */
-extern "C" int table_read_csv(const char* csv_path)
+extern "C" int table_read_csv(const char* csv_path, int skip_lines)
 {
 	log_err("table_read_csv(%s)", csv_path);
 	auto is = std::ifstream{csv_path};
@@ -50,7 +50,7 @@ extern "C" int table_read_csv(const char* csv_path)
 		log_err("failed to read: %s", csv_path);
 		return -1;
 	}
-	tables.push_back(table_read_csv(is)); // empty table in case of errors
+	tables.push_back(table_read_csv(is, skip_lines)); // empty table in case of errors
 	auto res = tables.size()-1;
 	log_err("table_read_csv: %d (id)", res);
 	return res;

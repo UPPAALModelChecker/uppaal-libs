@@ -3,7 +3,7 @@
 <nta>
 	<declaration>import "/home/marius/work/UPPAAL/uppaal-libs/libtable.so" {
     int table_new(int rows, int cols); // creates a new table
-    int table_read_csv(const string&amp; filename); // read table from csv file
+    int table_read_csv(const string&amp; filename, int skip_lines); // read table from csv file
 	int table_write_csv(int id, const string&amp; filename); // write table to csv file
     int table_copy(int id); // creates a new table copy
     int table_clear(int id); // releases resources associated with the table
@@ -16,7 +16,7 @@
 	void write_double(int id, int row, int col, double value); // write at row:col
 };
 
-const int id = table_read_csv("/home/marius/work/UPPAAL/uppaal-libs/table_input.csv");
+const int id = table_read_csv("/home/marius/work/UPPAAL/uppaal-libs/table_input.csv", 0);
 //const int id = table_new(3,4);
 const int rows = table_rows(id);
 const int cols = table_cols(id);

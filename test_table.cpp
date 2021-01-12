@@ -4,7 +4,7 @@
 /** Test for libtable */
 int main()
 {
-	using fn_str_to_int = int (*)(const char*);
+	using fn_str_int_to_int = int (*)(const char*, int);
 	using fn_int_str_to_int = int (*)(int, const char*);
 	using fn_int_to_int = int (*)(int);
 	using fn_int_int_to_int = int (*)(int, int);
@@ -14,7 +14,7 @@ int main()
 	try {
 		auto lib = Library{"./libtable.so"};
 		auto table_new = lib.lookup<fn_int_int_to_int>("table_new");
-		auto table_read_csv = lib.lookup<fn_str_to_int>("table_read_csv");
+		auto table_read_csv = lib.lookup<fn_str_int_to_int>("table_read_csv");
 		auto table_write_csv = lib.lookup<fn_int_str_to_int>("table_write_csv");
 		auto table_copy = lib.lookup<fn_int_to_int>("table_copy");
 		auto table_clear = lib.lookup<fn_int_to_int>("table_clear");
@@ -24,7 +24,7 @@ int main()
 		auto write_double = lib.lookup<fn_int_int_int_double>("write_double");
 		auto table_resize_int = lib.lookup<fn_int_int_int_int>("table_resize_int");
 		auto table_resize_double = lib.lookup<fn_int_int_int_double>("table_resize_double");
-		auto id = table_read_csv("table_input.csv");
+		auto id = table_read_csv("table_input.csv", 0);
 		auto rows = table_rows(id);
 		auto cols = table_cols(id);
 		if (rows == 0 || cols == 0)

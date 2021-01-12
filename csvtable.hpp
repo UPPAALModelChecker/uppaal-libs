@@ -15,11 +15,15 @@ using row_t = std::vector<elem_t>;
 using table_t = std::vector<row_t>;
 using dictionary_t = std::unordered_map<elem_t,std::vector<elem_t>>;
 
-table_t table_read_csv(std::istream& is)
+table_t table_read_csv(std::istream& is, int skip_lines)
 {
+	auto sep = char{};
+	while (skip_lines-->0) {
+		while (is.get(sep) && sep != '\n')
+			;
+	}
 	auto table = table_t{};
 	auto elem = elem_t{};
-	auto sep = char{};
 	while (is >> elem) {
 		auto& row = table.emplace_back();
 		row.push_back(elem);
