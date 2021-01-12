@@ -35,7 +35,7 @@ int main()
 		auto read_int_row = lib.lookup<fn_int_int_int_intp_int_int>("read_int_row");
 
 		// read from file:
-		auto id = table_read_csv("table_input.csv", 0);
+		const auto id = table_read_csv("table_input.csv", 0);
 		auto rows = table_rows(id);
 		auto cols = table_cols(id);
 		if (rows == 0 || cols == 0)
@@ -72,7 +72,7 @@ int main()
 		table_write_csv(id, "table_output.csv");
 
 
-		auto id2 = table_copy(id);
+		const auto id2 = table_copy(id);
 		if (table_rows(id) != table_rows(id))
 			throw std::runtime_error("expected identical number of rows");
 		if (table_cols(id) != table_cols(id))

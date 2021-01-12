@@ -41,11 +41,11 @@ table_t table_read_csv(std::istream& is, int skip_lines)
 	while (is >> elem) {
 		auto& row = table.emplace_back();
 		row.push_back(elem);
-		while (is.get(sep) && sep != '\n')
+		while (is.get(sep) && sep != '\n' && sep != '\r')
 			if (is >> elem)
 				row.push_back(elem);
-		while (is.peek() == '#')
-			skip_line(is);
+		while ((is.peek() == '\r' || is.peek() == '\n') && is.get(sep))
+			;
 		skip_comments(is);
 	}
 	return table;

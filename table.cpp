@@ -25,6 +25,7 @@ extern "C" void read_int_row(int id, int row, int col, int* items, int offset, i
 using namespace std::string_literals;
 
 static std::vector<table_t> tables{};
+static std::unordered_map<std::string, table_t> cache;
 
 extern "C" int table_new_int(int rows, int cols, int value)
 {
@@ -50,22 +51,29 @@ extern "C" int table_new_double(int rows, int cols, double value)
 	return res;
 }
 
-/**
- * The exported C library functions must be marked as `extern "C"`.
- * Other (internally linked) functions can be C, C++ -- anything (decided at compile-time).
- */
+static table_t load(const std::string& path, int skip_lines)
+{
+	auto it = cache.find(path);
+	if (it == cache.end()) {
+		log_err("No table in cache, loading from scratch");
+		auto is = std::ifstream{path};
+		is.peek();
+		if (!is || is.eof()) {
+			log_err("failed to read: %s", path.c_str());
+		}
+		bool res = false;
+		std::tie(it, res) = cache.emplace(path, table_read_csv(is, skip_lines));
+	} else {
+		log_err("Found table in cache");
+	}
+	return it->second;
+}
 
 /** loads the table from CSV file, returns the table id, or -1 on error */
 extern "C" int table_read_csv(const char* csv_path, int skip_lines)
 {
-	log_err("table_read_csv(%s)", csv_path);
-	auto is = std::ifstream{csv_path};
-	is.peek();
-	if (!is || is.eof()) {
-		log_err("failed to read: %s", csv_path);
-		return -1;
-	}
-	tables.push_back(table_read_csv(is, skip_lines)); // empty table in case of errors
+	log_err("table_read_csv(%s, %d)", csv_path, skip_lines);
+	tables.push_back(load(csv_path, skip_lines)); // empty table in case of errors
 	auto res = tables.size()-1;
 	log_err("table_read_csv: %d (id)", res);
 	return res;

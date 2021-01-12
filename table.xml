@@ -43,10 +43,11 @@ void read_all()
 
 void read_by_row() 
 {
-/* crash
-  for (r : int[0,rows-1])
+// crash
+//  for (r : int[0,rows-1])
+    const int r = 0;
     read_int_row(id, r, 0, table[r][0], 0, cols);
-*/
+
 }</declaration>
 	<template>
 		<name x="5" y="5">Template</name>
