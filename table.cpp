@@ -5,31 +5,46 @@
 
 #include <unistd.h> // getcwd
 
-extern "C" int table_new(int rows, int cols);
+extern "C" int table_new_int(int rows, int cols, int value);
+extern "C" int table_new_double(int rows, int cols, double value);
+extern "C" int table_resize_double(int id, int rows, int cols, double value);
+extern "C" int table_resize_int(int id, int rows, int cols, int value);
 extern "C" int table_read_csv(const char* csv_path, int skip_lines);
 extern "C" int table_write_csv(int id, const char* csv_path);
 extern "C" int table_copy(int id);
 extern "C" int table_clear(int id);
 extern "C" int table_rows(int id);
 extern "C" int table_cols(int id);
-extern "C" double read_double(int id, int row, int col);
 extern "C" int read_int(int id, int row, int col);
-extern "C" int table_resize_double(int id, int rows, int cols, double value);
-extern "C" int table_resize_int(int id, int rows, int cols, int value);
-extern "C" void write_double(int id, int row, int col, double value);
 extern "C" void write_int(int id, int row, int col, int value);
+extern "C" double read_double(int id, int row, int col);
+extern "C" void write_double(int id, int row, int col, double value);
+extern "C" void read_int_col(int id, int row, int col, int* items, int offset, int count);
+extern "C" void read_int_row(int id, int row, int col, int* items, int offset, int count);
 
 using namespace std::string_literals;
 
 static std::vector<table_t> tables{};
 
-extern "C" int table_new(int rows, int cols)
+extern "C" int table_new_int(int rows, int cols, int value)
 {
-	log_err("table_new(%d, %d)", rows, cols);
+	log_err("table_new(%d, %d, %d)", rows, cols, value);
 	auto& t = tables.emplace_back();
 	t.resize(rows);
 	for (auto& row : t)
-		row.resize(cols, 0);
+		row.resize(cols, value);
+	auto res = tables.size()-1;
+	log_err("table_new: ", res);
+	return res;
+}
+
+extern "C" int table_new_double(int rows, int cols, double value)
+{
+	log_err("table_new(%d, %d, %f)", rows, cols, value);
+	auto& t = tables.emplace_back();
+	t.resize(rows);
+	for (auto& row : t)
+		row.resize(cols, value);
 	auto res = tables.size()-1;
 	log_err("table_new: ", res);
 	return res;
@@ -153,6 +168,15 @@ extern "C" int table_cols(int id)
 	return res;
 }
 
+static table_t& get_table(int id)
+{
+	if (id < 0)
+		throw std::runtime_error("table id too low: "s + std::to_string(id));
+	if ((size_t)id >= tables.size())
+		throw std::runtime_error("table id too high: "s + std::to_string(id));
+	return tables[id];
+}
+
 /**
  * Internal function wrapping all the table accesses with range checks.
  * @param row the row number
@@ -162,17 +186,14 @@ extern "C" int table_cols(int id)
 static elem_t& access(int id, int row, int col)
 {
 	using namespace std::string_literals;
-	if (id < 0)
-		throw std::runtime_error("table id too low: "s + std::to_string(id));
-	if ((size_t)id >= tables.size())
-		throw std::runtime_error("table id too high: "s + std::to_string(id));
+	auto& table = get_table(id);
 	if (row < 0)
 		throw std::runtime_error("negative row: "s + std::to_string(row));
-	if (tables[id].size() <= (size_t)row)
+	if (table.size() <= (size_t)row)
 		throw std::runtime_error("row overflow: "s + std::to_string(row));
 	if (col < 0)
 		throw std::runtime_error("negative column: "s + std::to_string(col));
-	auto& table_row = tables[id][row];
+	auto& table_row = table[row];
 	if (table_row.size() <= (size_t)col)
 		throw std::runtime_error("column overflow: "s + std::to_string(col));
 	return table_row[col];
@@ -197,14 +218,7 @@ extern "C" int read_int(int id, int row, int col)
 /** User function: resize the entire table to a given rectangular size. Return id on success */
 extern "C" int table_resize_double(int id, int rows, int cols, double value)
 {
-	if (id < 0) {
-		log_err("table id is too low: %d", id);
-		return -1;
-	}
-	if ((size_t)id >= tables.size()) {
-		log_err("table id is too high: %d", id);
-		return -1;
-	}
+	auto& table = get_table(id);
 	if (rows < 0) {
 		log_err("negative row number: %d", rows);
 		return -1;
@@ -213,8 +227,8 @@ extern "C" int table_resize_double(int id, int rows, int cols, double value)
 		log_err("negative column number: %d", cols);
 		return -1;
 	}
-	tables[id].resize(rows);
-	for (auto& row: tables[id])
+	table.resize(rows);
+	for (auto& row: table)
 		row.resize(cols, value);
 	return id;
 }
@@ -222,14 +236,7 @@ extern "C" int table_resize_double(int id, int rows, int cols, double value)
 /** User function: resize the entire table to a given rectangular size. Return id on success */
 extern "C" int table_resize_int(int id, int rows, int cols, int value)
 {
-	if (id < 0) {
-		log_err("table id is too low: %d", id);
-		return -1;
-	}
-	if ((size_t)id >= tables.size()) {
-		log_err("table id is too high: %d", id);
-		return -1;
-	}
+	auto& table = get_table(id);
 	if (rows < 0) {
 		log_err("negative row number: %d", rows);
 		return -1;
@@ -238,8 +245,8 @@ extern "C" int table_resize_int(int id, int rows, int cols, int value)
 		log_err("negative column number: %d", cols);
 		return -1;
 	}
-	tables[id].resize(rows);
-	for (auto& row: tables[id])
+	table.resize(rows);
+	for (auto& row: table)
 		row.resize(cols, value);
 	return id;
 }
@@ -257,4 +264,46 @@ extern "C" void write_double(int id, int row, int col, double value)
 extern "C" void write_int(int id, int row, int col, int value)
 {
 	write_double(id, row, col, value);
+}
+
+extern "C" void read_int_col(int id, int row, int col, int* items, int offset, int count)
+{
+	try {
+		log_err("read_int_col(%d, %d, %d, %p, %d %d)", id, row, col, items, offset, count);
+		auto& table = get_table(id);
+		if (row < 0)
+			throw std::runtime_error("negative row");
+		if (col < 0)
+			throw std::runtime_error("negative column");
+		if ((size_t)row+count > table.size())
+			throw std::runtime_error("row range is beyond table size");
+		if ((size_t)col >= table[row].size())
+			throw std::runtime_error("column is beyond table size");
+		auto rb = std::next(std::begin(table), row), re = std::end(table);
+		for (auto i = 0; i < count && rb != re; ++i, ++rb)
+			items[offset + i] = (*rb)[col];
+	} catch(std::runtime_error& e) {
+		log_err("%s", e.what());
+	}
+}
+
+extern "C" void read_int_row(int id, int row, int col, int* items, int offset, int count)
+{
+	try {
+		log_err("read_int_row(%d, %d, %d, %p, %d %d)", id, row, col, items, offset, count);
+		auto& table = get_table(id);
+		if (row < 0)
+			throw std::runtime_error("negative row");
+		if (col < 0)
+			throw std::runtime_error("negative column");
+		if ((size_t)row >= table.size())
+			throw std::runtime_error("row is beyond table size");
+		if ((size_t)col+count > table[row].size())
+			throw std::runtime_error("column range is beyond table size");
+		auto rb = std::next(std::begin(table), row);
+		for (auto i = 0; i < count; ++i)
+			items[offset + i] = (*rb)[col+i];
+	} catch(std::runtime_error& e) {
+		log_err("%s", e.what());
+	}
 }

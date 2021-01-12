@@ -15,13 +15,27 @@ using row_t = std::vector<elem_t>;
 using table_t = std::vector<row_t>;
 using dictionary_t = std::unordered_map<elem_t,std::vector<elem_t>>;
 
+inline
+void skip_line(std::istream& is)
+{
+	char c;
+	while (is.get(c) && c != '\n')
+		;
+}
+
+inline
+void skip_comments(std::istream& is)
+{
+	while (is.peek() == '#')
+		skip_line(is);
+}
+
 table_t table_read_csv(std::istream& is, int skip_lines)
 {
 	auto sep = char{};
-	while (skip_lines-->0) {
-		while (is.get(sep) && sep != '\n')
-			;
-	}
+	while (is && skip_lines-->0)
+		skip_line(is);
+	skip_comments(is);
 	auto table = table_t{};
 	auto elem = elem_t{};
 	while (is >> elem) {
@@ -30,6 +44,9 @@ table_t table_read_csv(std::istream& is, int skip_lines)
 		while (is.get(sep) && sep != '\n')
 			if (is >> elem)
 				row.push_back(elem);
+		while (is.peek() == '#')
+			skip_line(is);
+		skip_comments(is);
 	}
 	return table;
 }

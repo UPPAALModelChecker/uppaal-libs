@@ -1,23 +1,26 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.5//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_5.dtd'>
 <nta>
-	<declaration>import "/home/marius/work/UPPAAL/uppaal-libs/libtable.so" {
-    int table_new(int rows, int cols); // creates a new table
-    int table_read_csv(const string&amp; filename, int skip_lines); // read table from csv file
-	int table_write_csv(int id, const string&amp; filename); // write table to csv file
-    int table_copy(int id); // creates a new table copy
-    int table_clear(int id); // releases resources associated with the table
+	<declaration>import "/home/marius/work/UPPAAL/uppaal-libs/libtable-dbg.so" {
+    int table_new_int(int rows, int cols, int value); // creates a new table and returns its id
+    int table_new_double(int rows, int cols, double value); // creates a new table and returns its id
+    int table_read_csv(const string&amp; filename, int skip_lines); // reads table from csv file and returns id
+	int table_write_csv(int id, const string&amp; filename); // writes table to csv file and returns number of rows
+    int table_copy(int id); // creates a new table copy and returns its id
+    int table_clear(int id); // releases resources associated with the table and returns id
     int table_resize_int(int id, int rows, int cols, int value); // resizes the table with given dimensions
     int table_rows(int id); // number of rows in the table
     int table_cols(int id); // number of columns in the table
-	int read_int(int id, int row, int col); // read at row:col
-	double read_double(int id, int row, int col); // read at row:col
-	void write_int(int id, int row, int col, int value); // write at row:col
-	void write_double(int id, int row, int col, double value); // write at row:col
+	int read_int(int id, int row, int col); // read integer at row:col
+	double read_double(int id, int row, int col); // read double at row:col
+	void write_int(int id, int row, int col, int value); // write integer at row:col
+	void write_double(int id, int row, int col, double value); // write double at row:col
+	void read_int_col(int id, int row, int col, int&amp; items, int offset, int count); // read column
+	void read_int_row(int id, int row, int col, int&amp; items, int offset, int count); // read row
 };
 
 const int id = table_read_csv("/home/marius/work/UPPAAL/uppaal-libs/table_input.csv", 0);
-//const int id = table_new(3,4);
+//const int id = table_new_double(3, 4, 3.14);
 const int rows = table_rows(id);
 const int cols = table_cols(id);
 const int len = table_write_csv(id, "/home/marius/work/UPPAAL/uppaal-libs/table_output.csv");
@@ -37,19 +40,47 @@ void read_all()
            table[i][j] = read_int(_id, i, j);
   }
 }
-</declaration>
+
+void read_by_row() 
+{
+/* crash
+  for (r : int[0,rows-1])
+    read_int_row(id, r, 0, table[r][0], 0, cols);
+*/
+}</declaration>
 	<template>
 		<name x="5" y="5">Template</name>
 		<declaration>// Place local declarations here.</declaration>
-		<location id="id0" x="127" y="0">
-		</location>
-		<location id="id1" x="0" y="0">
+		<location id="id0" x="-136" y="51">
 			<urgent/>
 		</location>
-		<init ref="id1"/>
+		<location id="id1" x="144" y="93">
+		</location>
+		<location id="id2" x="127" y="0">
+		</location>
+		<location id="id3" x="-8" y="93">
+			<urgent/>
+		</location>
+		<location id="id4" x="-8" y="0">
+			<urgent/>
+		</location>
+		<init ref="id0"/>
 		<transition>
-			<source ref="id1"/>
-			<target ref="id0"/>
+			<source ref="id0"/>
+			<target ref="id3"/>
+		</transition>
+		<transition>
+			<source ref="id0"/>
+			<target ref="id4"/>
+		</transition>
+		<transition>
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<label kind="assignment" x="8" y="93">read_by_row()</label>
+		</transition>
+		<transition>
+			<source ref="id4"/>
+			<target ref="id2"/>
 			<label kind="assignment" x="18" y="0">read_all()</label>
 		</transition>
 	</template>
@@ -62,73 +93,6 @@ system Process;
 		<query>
 			<formula>simulate 1 [&lt;=1] { id, rows, cols, len }</formula>
 			<comment/>
-			<result outcome="success" type="quality" timestamp="2021-01-12 04:50:12 +0100">
-				<option key="--search-order" value="0"/>
-				<option key="--statespace-consumption" value="1"/>
-				<option key="--diagnostic" value="-1"/>
-				<option key="--backwards-order" value="1"/>
-				<option key="--priority-order" value="0"/>
-				<option key="--generate-strategy" value="2"/>
-				<option key="--extrapolation" value="0"/>
-				<option key="--hashtable-size" value="27"/>
-				<option key="--filter" value="0"/>
-				<option key="--learning-method" value="4"/>
-				<option key="--good-runs" value="200"/>
-				<option key="--total-runs" value="500"/>
-				<option key="--runs-pr-state" value="100"/>
-				<option key="--eval-runs" value="100"/>
-				<option key="--max-iterations" value="30"/>
-				<option key="--max-imitation" value="5"/>
-				<option key="--reset-no-better" value="10"/>
-				<option key="--max-reset-learning" value="3"/>
-				<option key="--qlearning-alpha" value="2"/>
-				<option key="--split-upper-t" value="1.75"/>
-				<option key="--split-lower-t" value="0.15"/>
-				<option key="--split-ks" value="0.25"/>
-				<option key="--split-filter-rate" value="0.02"/>
-				<option key="--split-filter-val" value="0.99"/>
-				<option key="--discount" value="0.99"/>
-				<option key="--random-search-limit" value="0.5"/>
-				<option key="--deterministic-search-limit" value="0.5"/>
-				<option key="--indifference-scale" value="0.005"/>
-				<option key="--indifference-smoothing" value="10"/>
-				<option key="--lower-delta" value="0.01"/>
-				<option key="--upper-delta" value="0.01"/>
-				<option key="--alpha" value="0.05"/>
-				<option key="--beta" value="0.05"/>
-				<option key="--epsilon" value="0.05"/>
-				<option key="--u0" value="0.9"/>
-				<option key="--u1" value="1.1"/>
-				<option key="--histogram-bar-width" value="0.0"/>
-				<option key="--histogram-bar-count" value="0"/>
-				<option key="--resolution" value="4000"/>
-				<option key="--discretization" value="0.01"/>
-				<option key="--truncation-error" value="0.01"/>
-				<option key="--truncation-time-error" value="0.01"/>
-				
-				<plot title="Simulations (1)" xaxis="time" yaxis="value">
-					<series title="id" type="l" color="0xff0000" encoding="csv">0.0,0.0
-1.0,0.0
-
-					</series>
-					<series title="rows" type="l" color="0x80ff00" encoding="csv">0.0,0.0
-0.0,4.0
-1.0,4.0
-
-					</series>
-					<series title="cols" type="l" color="0x00ffff" encoding="csv">0.0,0.0
-0.0,3.0
-1.0,3.0
-
-					</series>
-					<series title="len" type="l" color="0x8000ff" encoding="csv">0.0,0.0
-0.0,4.0
-1.0,4.0
-
-					</series>
-					<comment/>
-				</plot>
-			</result>
 		</query>
 		<query>
 			<formula>//simulate 1 [&lt;=10] {table[0][0], table[0][1], table[0,2]}</formula>
