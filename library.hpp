@@ -8,21 +8,20 @@
 #include <stdexcept> // runtime_error
 #include <dlfcn.h> // dlopen, dlsym, dlerror
 
-/** Wrapper for opening UppaalLibrary files.
+/** Wrapper for opening Library files.
  * Methods may throw runtime_error upon errors. */
-class UppaalLibrary
+class Library
 {
 	void* handle; // library handle
 
 public:
-
-	UppaalLibrary(const char* filepath):
+	Library(const char* filepath):
 		handle{dlopen(filepath, RTLD_LAZY | RTLD_LOCAL)}
 	{
 		if (!handle)
 			throw std::runtime_error(dlerror());
 	}
-	~UppaalLibrary() noexcept
+	~Library() noexcept
 	{
 		if (handle) {
 			dlclose(handle);

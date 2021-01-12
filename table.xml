@@ -1,30 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.1//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_2.dtd'>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.5//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_5.dtd'>
 <nta>
 	<declaration>import "/home/marius/work/UPPAAL/uppaal-libs/libtable.so" {
-    int read_table(const string&amp; filename);
-    int get_rows(); // the number of rows in the table
-    int get_cols(); // the number of columns in the table
-	double read_double(int row, int col); // read at row:col
-	void write_double(int row, int col, double value); // write at row:col
-	void export_table(); // dump the table content to a file
+    int table_new(int rows, int cols); // creates a new table
+    int table_read_csv(const string&amp; filename); // read table from csv file
+	int table_write_csv(int id, const string&amp; filename); // write table to csv file
+    int table_copy(int id); // creates a new table copy
+    int table_clear(int id); // releases resources associated with the table
+    int table_resize_int(int id, int rows, int cols, int value); // resizes the table with given dimensions
+    int table_rows(int id); // number of rows in the table
+    int table_cols(int id); // number of columns in the table
+	int read_int(int id, int row, int col); // read at row:col
+	double read_double(int id, int row, int col); // read at row:col
+	void write_int(int id, int row, int col, int value); // write at row:col
+	void write_double(int id, int row, int col, double value); // write at row:col
 };
 
-const int size = read_table("/home/marius/work/UPPAAL/uppaal-libs/table_input.csv");
-const int rows = get_rows();
-const int cols = get_cols();
+const int id = table_read_csv("/home/marius/work/UPPAAL/uppaal-libs/table_input.csv");
+//const int id = table_new(3,4);
+const int rows = table_rows(id);
+const int cols = table_cols(id);
+const int len = table_write_csv(id, "/home/marius/work/UPPAAL/uppaal-libs/table_output.csv");
 
-/*
-double table[rows][cols];
+int _id = id;
+int _rows = rows;
+int _cols = cols;
+int _len = len;
 
-void read_all(){
+int table[rows][cols];
+
+void read_all()
+{
   if (rows&gt;0 &amp;&amp; cols&gt;0) {
      for (i : int[0,rows-1])
         for (j : int[0,cols-1])
-           table[i][j] = read_double(i,j);
+           table[i][j] = read_int(_id, i, j);
   }
 }
-*/</declaration>
+</declaration>
 	<template>
 		<name x="5" y="5">Template</name>
 		<declaration>// Place local declarations here.</declaration>
@@ -37,6 +50,7 @@ void read_all(){
 		<transition>
 			<source ref="id1"/>
 			<target ref="id0"/>
+			<label kind="assignment" x="18" y="0">read_all()</label>
 		</transition>
 	</template>
 	<system>// Place template instantiations here.
@@ -46,12 +60,79 @@ system Process;
     </system>
 	<queries>
 		<query>
-			<formula>simulate 1 [&lt;=10] { size, rows, cols }</formula>
-			<comment></comment>
+			<formula>simulate 1 [&lt;=1] { id, rows, cols, len }</formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2021-01-12 04:50:12 +0100">
+				<option key="--search-order" value="0"/>
+				<option key="--statespace-consumption" value="1"/>
+				<option key="--diagnostic" value="-1"/>
+				<option key="--backwards-order" value="1"/>
+				<option key="--priority-order" value="0"/>
+				<option key="--generate-strategy" value="2"/>
+				<option key="--extrapolation" value="0"/>
+				<option key="--hashtable-size" value="27"/>
+				<option key="--filter" value="0"/>
+				<option key="--learning-method" value="4"/>
+				<option key="--good-runs" value="200"/>
+				<option key="--total-runs" value="500"/>
+				<option key="--runs-pr-state" value="100"/>
+				<option key="--eval-runs" value="100"/>
+				<option key="--max-iterations" value="30"/>
+				<option key="--max-imitation" value="5"/>
+				<option key="--reset-no-better" value="10"/>
+				<option key="--max-reset-learning" value="3"/>
+				<option key="--qlearning-alpha" value="2"/>
+				<option key="--split-upper-t" value="1.75"/>
+				<option key="--split-lower-t" value="0.15"/>
+				<option key="--split-ks" value="0.25"/>
+				<option key="--split-filter-rate" value="0.02"/>
+				<option key="--split-filter-val" value="0.99"/>
+				<option key="--discount" value="0.99"/>
+				<option key="--random-search-limit" value="0.5"/>
+				<option key="--deterministic-search-limit" value="0.5"/>
+				<option key="--indifference-scale" value="0.005"/>
+				<option key="--indifference-smoothing" value="10"/>
+				<option key="--lower-delta" value="0.01"/>
+				<option key="--upper-delta" value="0.01"/>
+				<option key="--alpha" value="0.05"/>
+				<option key="--beta" value="0.05"/>
+				<option key="--epsilon" value="0.05"/>
+				<option key="--u0" value="0.9"/>
+				<option key="--u1" value="1.1"/>
+				<option key="--histogram-bar-width" value="0.0"/>
+				<option key="--histogram-bar-count" value="0"/>
+				<option key="--resolution" value="4000"/>
+				<option key="--discretization" value="0.01"/>
+				<option key="--truncation-error" value="0.01"/>
+				<option key="--truncation-time-error" value="0.01"/>
+				
+				<plot title="Simulations (1)" xaxis="time" yaxis="value">
+					<series title="id" type="l" color="0xff0000" encoding="csv">0.0,0.0
+1.0,0.0
+
+					</series>
+					<series title="rows" type="l" color="0x80ff00" encoding="csv">0.0,0.0
+0.0,4.0
+1.0,4.0
+
+					</series>
+					<series title="cols" type="l" color="0x00ffff" encoding="csv">0.0,0.0
+0.0,3.0
+1.0,3.0
+
+					</series>
+					<series title="len" type="l" color="0x8000ff" encoding="csv">0.0,0.0
+0.0,4.0
+1.0,4.0
+
+					</series>
+					<comment/>
+				</plot>
+			</result>
 		</query>
 		<query>
 			<formula>//simulate 1 [&lt;=10] {table[0][0], table[0][1], table[0,2]}</formula>
-			<comment></comment>
+			<comment/>
 		</query>
 	</queries>
 </nta>

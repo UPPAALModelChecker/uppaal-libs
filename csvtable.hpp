@@ -15,7 +15,7 @@ using row_t = std::vector<elem_t>;
 using table_t = std::vector<row_t>;
 using dictionary_t = std::unordered_map<elem_t,std::vector<elem_t>>;
 
-table_t read_csv_table(std::istream& is)
+table_t table_read_csv(std::istream& is)
 {
 	auto table = table_t{};
 	auto elem = elem_t{};
@@ -30,7 +30,7 @@ table_t read_csv_table(std::istream& is)
 	return table;
 }
 
-dictionary_t read_csv_map(std::istream& is)
+dictionary_t dictionary_read_csv(std::istream& is)
 {
 	auto dictionary = dictionary_t{};
 	auto elem = elem_t{};
@@ -82,7 +82,7 @@ double interpolate(const table_t& table, const elem_t key, int column)
 	return y1 + (y2-y1)/(x2-x1)*(key-x1); // linear interpolation
 }
 
-std::ostream& write_csv(std::ostream& os, const table_t& table, const char sep= ',')
+std::ostream& table_write_csv(std::ostream& os, const table_t& table, const char sep= ',')
 {
 	for (auto& row : table) {
 		auto b = std::begin(row), e = std::end(row);
@@ -96,7 +96,7 @@ std::ostream& write_csv(std::ostream& os, const table_t& table, const char sep= 
 	return os;
 }
 
-std::ostream& write_csv(std::ostream& os, const dictionary_t& dictionary, const char sep= ',')
+std::ostream& dictionary_write_csv(std::ostream& os, const dictionary_t& dictionary, const char sep= ',')
 {
 	for (auto& row : dictionary) {
 		os << row.first;
