@@ -62,6 +62,6 @@ int value_at_row1_col2 = read_int(id, 1, 2);
 
 * A correct use is to not modify the table at all (**read-only** access is **side-effect-free**).
 
-* Consider the following **bad modification** use case with two edges emanating form the initial location: the first edge modifies the table and the second just reads -- the model-checker may execute the first (and modify the table) and come back to explore the second location, however the table modification is visible for the second edge because engine could not reset the data in the external library.
+* Consider the following **bad modification** use case with two edges emanating form the initial location: the first edge modifies the table and the second just reads -- the model-checker may execute the first (and modify the table) and come back to explore the seond edge, however the table modification is visible for the second edge because engine could not reset the data in the external library.
 
 * A possibly correct, but very tedious and error prone scenario with modification is to create a separate data for each new state and then refer back to the same data when the state changes back, i.e. maintain one-to-one correspondence between system state and the data in the external library. For example, an new edge update may create/update a new table/row in the table identified by some variable value and then the same table/row should be used when the system returns to the exact same state (which can be indexed by that variable value).
