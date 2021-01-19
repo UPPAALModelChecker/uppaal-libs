@@ -10,6 +10,7 @@ int main()
 	using fn_int_int_int_to_int = int (*)(int, int, int);
 	using fn_int_int_double_to_int = int (*)(int, int, double);
 	using fn_int_int_int_to_double = double (*)(int, int, int);
+	using fn_int_double_int_int_to_double = double (*)(int, double, int, int);
 	using fn_int_int_int_int = int (*)(int, int, int, int);
 	using fn_int_int_int_double = int (*)(int, int, int, double);
 	using fn_int_int_int_intp_int_int = void(*)(int, int, int, int*, int, int);
@@ -33,6 +34,7 @@ int main()
 		auto write_double = lib.lookup<fn_int_int_int_double>("write_double");
 		auto read_int_col = lib.lookup<fn_int_int_int_intp_int_int>("read_int_col");
 		auto read_int_row = lib.lookup<fn_int_int_int_intp_int_int>("read_int_row");
+		auto interpolate = lib.lookup<fn_int_double_int_int_to_double>("interpolate");
 
 		// read from file:
 		const auto id = table_read_csv("table_input.csv", 0);
@@ -49,7 +51,15 @@ int main()
 		}
 		if (6 != read_double(id, 1, 1))
 			throw std::runtime_error("expected 6 at 1:1");
-
+		auto v1_2 = interpolate(id, 1.2, 0, 1);
+		if (5.2 != v1_2)
+			throw std::runtime_error("expected 5.2 at 1.2");
+		auto v0 = interpolate(id, 0.0, 0, 1);
+		if (5.0 != v0)
+			throw std::runtime_error("expected 5.0 at 0");
+		auto v5_5 = interpolate(id, 5.5, 0, 1);
+		if (8.0 != v5_5)
+			throw std::runtime_error("expected 8.0 at 5.5");
 		// read in bulk:
 		int column1[rows];
 		read_int_col(id, 0, 1, column1, 0, rows);

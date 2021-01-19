@@ -16,16 +16,20 @@ extern "C" int table_clear(int id);
 extern "C" int table_rows(int id);
 extern "C" int table_cols(int id);
 extern "C" int read_int(int id, int row, int col);
-extern "C" void write_int(int id, int row, int col, int value);
 extern "C" double read_double(int id, int row, int col);
+extern "C" void write_int(int id, int row, int col, int value);
 extern "C" void write_double(int id, int row, int col, double value);
+extern "C" double interpolate(int id, double key, int key_col, int valu_col);
 extern "C" void read_int_col(int id, int row, int col, int* items, int offset, int count);
 extern "C" void read_int_row(int id, int row, int col, int* items, int offset, int count);
+
 
 using namespace std::string_literals;
 
 static std::vector<table_t> tables{};
+#ifdef ENABLE_CSV_CACHE
 static std::unordered_map<std::string, table_t> cache;
+#endif
 
 extern "C" int table_new_int(int rows, int cols, int value)
 {
@@ -53,6 +57,7 @@ extern "C" int table_new_double(int rows, int cols, double value)
 
 static table_t load(const std::string& path, int skip_lines)
 {
+#ifdef ENABLE_CSV_CACHE
 	auto it = cache.find(path);
 	if (it == cache.end()) {
 		log_err("No table in cache, loading from scratch");
@@ -67,6 +72,14 @@ static table_t load(const std::string& path, int skip_lines)
 		log_err("Found table in cache");
 	}
 	return it->second;
+#else
+	auto is = std::ifstream{path};
+	is.peek();
+	if (!is || is.eof()) {
+		log_err("failed to read: %s", path.c_str());
+	}
+	return table_read_csv(is, skip_lines);
+#endif
 }
 
 /** loads the table from CSV file, returns the table id, or -1 on error */
@@ -272,6 +285,18 @@ extern "C" void write_double(int id, int row, int col, double value)
 extern "C" void write_int(int id, int row, int col, int value)
 {
 	write_double(id, row, col, value);
+}
+
+extern "C" double interpolate(int id, double key, int key_col, int valu_col)
+{
+	auto res = 0.0;
+	try {
+		auto& table = get_table(id);
+		res = interpolate(table, key, key_col, valu_col);
+	} catch (std::runtime_error& e) {
+		log_err("%s", e.what());
+	}
+	return res;
 }
 
 extern "C" void read_int_col(int id, int row, int col, int* items, int offset, int count)

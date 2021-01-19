@@ -30,7 +30,7 @@ void skip_comments(std::istream& is)
 		skip_line(is);
 }
 
-table_t table_read_csv(std::istream& is, int skip_lines)
+[[nodiscard]] table_t table_read_csv(std::istream& is, int skip_lines)
 {
 	auto sep = char{};
 	while (is && skip_lines-->0)
@@ -51,7 +51,7 @@ table_t table_read_csv(std::istream& is, int skip_lines)
 	return table;
 }
 
-dictionary_t dictionary_read_csv(std::istream& is)
+[[nodiscard]] dictionary_t dictionary_read_csv(std::istream& is)
 {
 	auto dictionary = dictionary_t{};
 	auto elem = elem_t{};
@@ -65,41 +65,34 @@ dictionary_t dictionary_read_csv(std::istream& is)
 	return dictionary;
 }
 
-double interpolate(const table_t& table, const elem_t key, int column)
+[[nodiscard]] double interpolate(const table_t& table, const elem_t key, int key_column, int value_column)
 {
 	using namespace std::string_literals;
-	if (column < 0)
-		throw std::runtime_error("negative column");
-	auto it = std::lower_bound(std::begin(table), std::end(table), key,
-								   [](const row_t& row, const elem_t& key){
-									   return row.front() < key;
-								   });
-	if (it == std::end(table))
-		throw std::runtime_error("key is outside the table range");
-	if (std::next(it) == std::end(table)) {
-		auto& row = *it;
-		if (row.size() <= (size_t)column)
-			throw std::runtime_error("column overflow: "s+
-									 std::to_string(column)+" at row "+
-									 std::to_string(std::distance(std::begin(table), it)+1));
-		return row[column]; // extrapolation assumes constant value
-	}
-	auto& row1 = (*it);
-	if (row1.size() <= (size_t)column)
-		throw std::runtime_error("column overflow: "s+
-								 std::to_string(column)+" at row "+
-								 std::to_string(std::distance(std::begin(table), it)+1));
-	auto& row2 = *std::next(it);
-	if (row2.size() <= (size_t)column)
-		throw std::runtime_error("column overflow: "s+
-								 std::to_string(column)+" at row "+
-								 std::to_string(std::distance(std::begin(table), it)+1));
-	auto x1 = row1[0];
-	auto x2 = row2[0];
-	auto y1 = row1[column];
+	if (key_column < 0)
+		throw std::runtime_error("negative key column");
+	if ((size_t)key_column >= table.front().size())
+		throw std::runtime_error("key column overflow");
+	if (value_column < 0)
+		throw std::runtime_error("negative value column");
+	if ((size_t)value_column >= table.front().size())
+		throw std::runtime_error("value column overflow");
+	auto it2 = std::lower_bound(std::begin(table), std::end(table), key,
+								[=](const row_t& row, const elem_t& key) {
+									return row[key_column] < key;
+								});
+	if (it2 == std::end(table))
+		return table.back()[value_column]; // extrapolate with the last value
+	if (it2 == std::begin(table))
+		return table.front()[value_column]; // extrapolate with the first value
+	auto it1 = std::prev(it2);
+	auto& row1 = (*it1);
+	auto& row2 = (*it2);
+	auto& x1 = row1[key_column];
+	auto& x2 = row2[key_column];
+	auto& y1 = row1[value_column];
 	if (x2 == x1) // protect against div-by-zero
 		return y1; // don't interpolate: pick the first
-	auto y2 = row2[column];
+	auto& y2 = row2[value_column];
 	return y1 + (y2-y1)/(x2-x1)*(key-x1); // linear interpolation
 }
 

@@ -13,10 +13,12 @@
     int table_cols(int id); // number of columns in the table
 	int read_int(int id, int row, int col); // read integer at row:col
 	double read_double(int id, int row, int col); // read double at row:col
+    // interpolated look up for key in key_column (sorted in ascending order) and returns value_column
+    double interpolate(int id, double key, int key_column, int value_column);
 	void write_int(int id, int row, int col, int value); // write integer at row:col
 	void write_double(int id, int row, int col, double value); // write double at row:col
-	void read_int_col(int id, int row, int col, int&amp; items, int offset, int count); // read column
-	void read_int_row(int id, int row, int col, int&amp; items, int offset, int count); // read row
+	void read_int_col(int id, int row, int col, int&amp; items[4], int offset, int count); // read column
+	void read_int_row(int id, int row, int col, int&amp; items[3], int offset, int count); // read row
 };
 
 const int id = table_read_csv("/home/marius/work/UPPAAL/uppaal-libs/table_input.csv", 0);
@@ -30,6 +32,11 @@ int _rows = rows;
 int _cols = cols;
 int _len = len;
 
+/*
+typedef int row_t[cols];
+typedef row_t table_t[rows];
+table_t table;
+*/
 int table[rows][cols];
 
 void read_all()
@@ -45,19 +52,28 @@ void read_by_row()
 {
 // crash
 //  for (r : int[0,rows-1])
+/*
     const int r = 0;
-    read_int_row(id, r, 0, table[r][0], 0, cols);
-
-}</declaration>
+    //row_t row;
+    int row[3];
+    read_int_row(id, r, 0, row, 0, cols);
+    table[r] = row;
+*/
+}
+</declaration>
 	<template>
 		<name x="5" y="5">Template</name>
-		<declaration>// Place local declarations here.</declaration>
+		<declaration>clock x;</declaration>
 		<location id="id0" x="-136" y="51">
 			<urgent/>
 		</location>
 		<location id="id1" x="144" y="93">
+			<label kind="invariant" x="127" y="102">x'==x</label>
 		</location>
 		<location id="id2" x="127" y="0">
+			<label kind="invariant" x="119" y="8">x'==x</label>
+			<label kind="comments" x="-17" y="34">ODE is needed to force 
+the small-step integration</label>
 		</location>
 		<location id="id3" x="-8" y="93">
 			<urgent/>
@@ -85,7 +101,8 @@ void read_by_row()
 			<label kind="assignment" x="18" y="0">read_all()</label>
 		</transition>
 	</template>
-	<system>// Place template instantiations here.
+	<system>clock t;
+// Place template instantiations here.
 Process = Template();
 // List one or more processes to be composed into a system.
 system Process;
@@ -94,6 +111,80 @@ system Process;
 		<query>
 			<formula>simulate 1 [&lt;=1] { id, rows, cols, len }</formula>
 			<comment/>
+		</query>
+		<query>
+			<formula>simulate 1 [&lt;=10] { interpolate(id, t, 0, 1), interpolate(id, t, 0, 3) } </formula>
+			<comment/>
+			<result outcome="success" type="quality" timestamp="2021-01-19 11:37:19 +0100">
+				<option key="--search-order" value="0"/>
+				<option key="--statespace-consumption" value="1"/>
+				<option key="--diagnostic" value="-1"/>
+				<option key="--backwards-order" value="1"/>
+				<option key="--priority-order" value="0"/>
+				<option key="--generate-strategy" value="2"/>
+				<option key="--extrapolation" value="0"/>
+				<option key="--hashtable-size" value="27"/>
+				<option key="--filter" value="0"/>
+				<option key="--learning-method" value="4"/>
+				<option key="--good-runs" value="200"/>
+				<option key="--total-runs" value="500"/>
+				<option key="--runs-pr-state" value="100"/>
+				<option key="--eval-runs" value="100"/>
+				<option key="--max-iterations" value="30"/>
+				<option key="--max-imitation" value="5"/>
+				<option key="--reset-no-better" value="10"/>
+				<option key="--max-reset-learning" value="3"/>
+				<option key="--qlearning-alpha" value="2"/>
+				<option key="--split-upper-t" value="1.75"/>
+				<option key="--split-lower-t" value="0.15"/>
+				<option key="--split-ks" value="0.25"/>
+				<option key="--split-filter-rate" value="0.02"/>
+				<option key="--split-filter-val" value="0.99"/>
+				<option key="--discount" value="0.99"/>
+				<option key="--random-search-limit" value="0.5"/>
+				<option key="--deterministic-search-limit" value="0.5"/>
+				<option key="--indifference-scale" value="0.005"/>
+				<option key="--indifference-smoothing" value="10"/>
+				<option key="--lower-delta" value="0.01"/>
+				<option key="--upper-delta" value="0.01"/>
+				<option key="--alpha" value="0.05"/>
+				<option key="--beta" value="0.05"/>
+				<option key="--epsilon" value="0.05"/>
+				<option key="--u0" value="0.9"/>
+				<option key="--u1" value="1.1"/>
+				<option key="--histogram-bar-width" value="0.0"/>
+				<option key="--histogram-bar-count" value="0"/>
+				<option key="--resolution" value="4000"/>
+				<option key="--discretization" value="0.01"/>
+				<option key="--truncation-error" value="0.01"/>
+				<option key="--truncation-time-error" value="0.01"/>
+				
+				<plot title="Simulations (1)" xaxis="time" yaxis="value">
+					<series title="interpolate(id, t, 0, 1)" type="l" color="0xff0000" encoding="csv">0.0,0.0
+0.0,5.0
+0.9414457301025632,5.0
+1.0349100048926037,5.034910004892604
+3.9656626646137303,7.96566266461373
+4.06031870243298,8.0
+10.0,8.0
+
+					</series>
+					<series title="interpolate(id, t, 0, 3)" type="l" color="0x00ffff" encoding="csv">0.0,0.0
+0.0,1.0
+0.9414457301025632,1.0
+1.0349100048926037,1.1047299959958121
+1.9780855313525585,3.934256580691863
+2.072691053829776,4.3634551890810505
+2.924455899968412,8.622279417106203
+3.019109181427911,9.13376428914594
+3.9656626646137303,15.75963853437155
+4.06031870243298,16.0
+10.0,16.0
+
+					</series>
+					<comment/>
+				</plot>
+			</result>
 		</query>
 		<query>
 			<formula>//simulate 1 [&lt;=10] {table[0][0], table[0][1], table[0,2]}</formula>
