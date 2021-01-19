@@ -20,22 +20,34 @@ Run `cmake-linux64.sh` to compile debug and release builds of the library:
 * Import the library into Uppaal model:
 ```c
 import "path/to/libtable.so" {
-    int table_new_int(int rows, int cols, int value); // creates a new table and returns its id
-    int table_new_double(int rows, int cols, double value); // creates a new table and returns its id
-    int table_read_csv(const string& filename, int skip_lines); // reads table from csv file and returns id
-	int table_write_csv(int id, const string& filename); // writes table to csv file and returns number of rows
-    int table_copy(int id); // creates a new table copy and returns its id
-    int table_clear(int id); // releases resources associated with the table and returns id
-    int table_resize_int(int id, int rows, int cols, int value); // resizes the table with given dimensions
-    int table_rows(int id); // number of rows in the table
-    int table_cols(int id); // number of columns in the table
-	int read_int(int id, int row, int col); // read integer at row:col
-	double read_double(int id, int row, int col); // read double at row:col
-    double interpolate(int id, double key, int key_column, int value_column); // interpolated look up for key in key_column (sorted in ascending order) and returns from value_column
-	void write_int(int id, int row, int col, int value); // write integer at row:col
-	void write_double(int id, int row, int col, double value); // write double at row:col
-	void read_int_col(int id, int row, int col, int& items[4], int offset, int count); // read column
-	void read_int_row(int id, int row, int col, int& items[3], int offset, int count); // read row
+    /** create a new table, fill it with integer value and return its id: */
+    int table_new_int(int rows, int cols, int value);
+    /** create a new table, fill it with double value and return its id: */
+    int table_new_double(int rows, int cols, double value);
+    /** read the table from the csv file and return its id: */
+    int table_read_csv(const string& filename, int skip_lines);
+    /** write the table to csv file and return the number of rows: */
+    int table_write_csv(int id, const string& filename);
+    /** create a new table copy and return its id: */
+    int table_copy(int id);
+    /** release the resources associated with the table and return its id: */
+    int table_clear(int id);
+    /** resize the table with the given dimensions: */
+    int table_resize_int(int id, int rows, int cols, int value);
+    /** return the number of rows in the table: */
+    int table_rows(int id);
+    /** return the number of columns in the table: */
+    int table_cols(int id);
+    /** read an integer value at row:col, counted from 0: */
+    int read_int(int id, int row, int col);
+    /** read a double value at row:col, counted from 0: */
+    double read_double(int id, int row, int col);
+    /** return interpolated look up value from row with key in key_column (sorted in ascending order) from value_column */
+    double interpolate(int id, double key, int key_column, int value_column);
+    /** write an integer value at row:col */
+    void write_int(int id, int row, int col, int value);
+    /** write a double value at row:col */
+    void write_double(int id, int row, int col, double value);
 };
 ```
 * Call the library to load the CSV file into a table, read the size and entries:
