@@ -1,12 +1,13 @@
-# uppaal-libs
+# Uppaal Libraries
 
 Generic examples of dynamically loaded libraries for Uppaal:
 
 * `libtable` read, manipulate and write table data via CSV files.
 
 ## Requirements
-* cmake [>=3.15]
-* C++ compiler supporting C++17 (e.g. g++-9)
+* cmake version 3.15 or newer.
+* C++ compiler supporting C++17 (e.g. `g++-9` or newer).
+* `glibc` the same or newer version than in Uppaal distribution
 
 ## Compile
 
@@ -19,7 +20,7 @@ Run `cmake-linux64.sh` to compile debug and release builds of the library:
 * Put `libtable.so` next to your project files.
 * Import the library into Uppaal model:
 ```c
-import "path/to/libtable.so" {
+import "absolute/path/to/libtable.so" {
     /** create a new table, fill it with integer value and return its id: */
     int table_new_int(int rows, int cols, int value);
     /** create a new table, fill it with double value and return its id: */
@@ -65,3 +66,75 @@ int value_at_row1_col2 = read_int(id, 1, 2);
 * Consider the following **bad modification** use case with two edges emanating form the initial location: the first edge modifies the table and the second just reads -- the model-checker may execute the first (and modify the table) and come back to explore the seond edge, however the table modification is visible for the second edge because engine could not reset the data in the external library.
 
 * A possibly correct, but very tedious and error prone scenario with modification is to create a separate data for each new state and then refer back to the same data when the state changes back, i.e. maintain one-to-one correspondence between system state and the data in the external library. For example, an new edge update may create/update a new table/row in the table identified by some variable value and then the same table/row should be used when the system returns to the exact same state (which can be indexed by that variable value).
+
+
+## Potential issues
+
+### Linking Issues: symbol not found, library not found
+
+To find out the list of libraries loaded by an executable object (binary or library), use `ldd`, for example:
+```sh
+ldd verifyta.bin
+ldd libstrategy.so
+```
+Note that entries like `linux-vdso.so.1` and `/lib64/ld-linux-x86-64.so.2` are overriden by the `verifyta` shell script to use the shipped library loader (`ld-linux.so`), and thus are not indicative when using `ldd`. Uppaal binaries are self-contained, i.e. it ships with all the libraries it requires. If your library needs something more, then it must be compatible with those libraries, most notably `libc`, see section below.
+
+One can also use [`strace`](https://man7.org/linux/man-pages/man1/strace.1.html) utility on the executable to see all the system calls it makes and thus discover all the files (including shared libraries) it tries to access and thus find out which library requires a specific symbol that the executable errs on.
+
+If some symbol is not found (symbol represents either a shared variable of a function loaded from a shared library), then one must check the library versions. Various versions may ship different sets of symbols. Normally newer library versions will also ship old/obsolete symbols to guarantee backward compatibility, therefore a newer library version is prefered.
+
+Meanwhile executables linked against newer library versions may not work with the old library version as they do not have the newer symbols. Therefore, it is prefered that the executables are linked against older libraries. Older libraries may have performance or even critical issues, thus the balance between library versions is very subtle.
+
+### Compatibility with `libc`
+
+**All libraries using `libc` must use a compatible version of `libc` shipped with Uppaal**, which means the same or newer version. Newer versions are usually backward compatible with older versions (with some rare exceptions), so one is encouraged to get the [latest and greatest](https://www.gnu.org/software/libc/), meanwhile the rest of the world is forced to be conservative and provide the old ones (which have highest compatibility).
+
+To find out the `libc` library version, run it with `--version` argument, for example:
+```sh
+./libc.so.6 --version
+```
+To find out the location of the system `libc` library, ask the compiler, for example:
+```sh
+g++ --print-file-name=libc.so.6
+```
+Which outputs something like this:
+```sh
+/lib/x86_64-linux-gnu/libc.so.6
+```
+Therefore the `libc` provided by the host system can print its version information by running:
+```sh
+/lib/x86_64-linux-gnu/libc.so.6 --version
+```
+
+If the `libc` provided by the host system is incompatible with the one shipped by Uppaal, then we need to compile our own `libc` and then build our library using it instead of the one provided by the host system.
+
+For example, here are the steps to download, [compile](https://www.gnu.org/software/libc/manual/html_node/Configuring-and-compiling.html) and install `libc` version 2.31 into `$PREFIX` target path:
+
+```sh
+PREFIX=$HOME/.local
+wget http://mirrors.dotsrc.org/gnu/libc/glibc-2.31.tar.bz2
+tar xf glibc-2.31.tar.bz2
+mkdir glibc-build
+cd glibc-build
+../glibc-2.31/configure CC=gcc-8 CFLAGS=-O3 --prefix=$PREFIX
+make -j2
+make install
+```
+
+Here we have set the installation target path `$PREFIX` to a "standard" location `$HOME/.local` for user programs, libraries and headers, but feel free to customize it. It has a similar structure to the system locations `/usr`, `/usr/local` and `/opt/local` except these are **not recommended** as they require root and **can mess up** the system's packaging system, so **do not use the system locations**, use some user directory instead.
+
+Then all the library sources need to be compiled against the `libc` in `$PREFIX` by adding the following options to the compiler before any source files are given `-I$PREFIX/include` and add the option `-L$PREFIX/lib` before any library name to the linker (which is often the same `gcc`/`g++` thus can be combined).
+
+Alternatively, one can simply specify the prefix to the automated build system (if one is used) which will do the above automatically:
+* For `configure` add `--prefix=$PREFIX`
+* For `cmake` add `-DCMAKE_PREFIX_PATH=$PREFIX`
+
+
+### CMake is too old
+
+[Download, compile and install newer cmake](https://cmake.org/install/) into `PREFIX=$HOME/.local` and add it to your path `PATH=$HOME/.local/bin:$PATH`.
+
+
+### System hosted compiler is too old
+
+Download, [compile](https://gcc.gnu.org/install/build.html) and install a newer compiler into the same `PREFIX=$HOME/.local` and add it to your path `PATH=$HOME/.local/bin:$PATH`. It can take a while to compile it, but it is doable and gets easier with each newer version.

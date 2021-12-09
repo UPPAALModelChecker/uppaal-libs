@@ -2,22 +2,26 @@
 
 set -e
 
-mkdir -p cmake-linux64-debug
-cd cmake-linux64-debug
-cmake .. -DCMAKE_BUILD_TYPE=Debug
-cmake --build . -j$(nproc)
-ctest --output-on-failure -j$(nproc)
-cd ..
+CORES=$(nproc)
+
+# Debug build, useful when debugging the library:
+BUILD_DIR=cmake-linux64-debug
+cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Debug
+cmake --build . -j$CORES
+## Test the build:
+(cd "$BUILD_DIR" ; ctest --output-on-failure -j$CORES)
+## Create a link to it:
 if [ ! -e libtable-dbg.so ]; then
-	ln -s cmake-linux64-debug/libtable.so libtable-dbg.so
+	ln -s "$BUILD_DIR"/libtable.so libtable-dbg.so
 fi
 
-mkdir -p cmake-linux64-release
-cd cmake-linux64-release
-cmake .. -DCMAKE_BUILD_TYPE=Release
-cmake --build . -j$(nproc)
-ctest --output-on-failure -j$(nproc)
-cd ..
+# Optimized release build:
+BUILD_DIR=cmake-linux64-release
+cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
+cmake --build . -j$CORES
+## Test the build:
+(cd "$BUILD_DIR" ; ctest --output-on-failure -j$CORES)
+## Create a link to it:
 if [ ! -e libtable.so ]; then
-	ln -s cmake-linux64-release/libtable.so libtable.so
+	ln -s "$BUILD_DIR"/libtable.so libtable.so
 fi
