@@ -81,9 +81,13 @@ Note that entries like `linux-vdso.so.1` and `/lib64/ld-linux-x86-64.so.2` are o
 
 One can also use [`strace`](https://man7.org/linux/man-pages/man1/strace.1.html) utility on the executable to see all the system calls it makes and thus discover all the files (including shared libraries) it tries to access and thus find out which library requires a specific symbol that the executable errs on.
 
-If some symbol is not found (symbol represents either a shared variable of a function loaded from a shared library), then one must check the library versions. Various versions may ship different sets of symbols. Normally newer library versions will also ship old/obsolete symbols to guarantee backward compatibility, therefore a newer library version is prefered.
+If some symbol is not found (symbol represents either a shared variable or a function loaded from a shared library), then one must check the library versions. Various versions may ship different sets of symbols. Normally newer library versions will also ship old/obsolete symbols to guarantee backward compatibility, therefore a newer library version is prefered.
 
 Meanwhile executables linked against newer library versions may not work with the old library version as they do not have the newer symbols. Therefore, it is prefered that the executables are linked against older libraries. Older libraries may have performance or even critical issues, thus the balance between library versions is very subtle.
+
+One may customize the search path the [dynamic library loader](https://man7.org/linux/man-pages/man8/ld-linux.8.html) is looking for library files during execution by setting the `LD_LIBRARY_PATH` environment variable. Also inspect `LD_RUN_PATH`, `LD_PRELOAD` variables in your environment: normally they are not used, but some setups may have already customized them and thus cause loading conflicting versions of the libraries.
+
+The search path can be customized during compilation using `-rpath` argument to the [dynamic library linker](https://man7.org/linux/man-pages/man1/ld.1.html).
 
 ### Compatibility with `libc`
 
@@ -135,6 +139,6 @@ Alternatively, one can simply specify the prefix to the automated build system (
 [Download, compile and install newer cmake](https://cmake.org/install/) into `PREFIX=$HOME/.local` and add it to your path `PATH=$HOME/.local/bin:$PATH`.
 
 
-### System hosted compiler is too old
+### Compiler is too old
 
-Download, [compile](https://gcc.gnu.org/install/build.html) and install a newer compiler into the same `PREFIX=$HOME/.local` and add it to your path `PATH=$HOME/.local/bin:$PATH`. It can take a while to compile it, but it is doable and gets easier with each newer version.
+Download, [compile and install](https://gcc.gnu.org/install/index.html) a newer compiler into the same `PREFIX=$HOME/.local` and add it to your path `PATH=$HOME/.local/bin:$PATH`. It can take a while to compile it, but it is doable and gets easier with each newer version.
