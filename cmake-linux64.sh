@@ -7,7 +7,7 @@ CORES=$(nproc)
 # Debug build, useful when debugging the library:
 BUILD_DIR=cmake-linux64-debug
 cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Debug
-cmake --build . -j$CORES
+cmake --build "$BUILD_DIR" -j$CORES
 ## Test the build:
 (cd "$BUILD_DIR" ; ctest --output-on-failure -j$CORES)
 ## Create a link to it:
@@ -18,7 +18,7 @@ fi
 # Optimized release build:
 BUILD_DIR=cmake-linux64-release
 cmake -S . -B "$BUILD_DIR" -DCMAKE_BUILD_TYPE=Release
-cmake --build . -j$CORES
+cmake --build "$BUILD_DIR" -j$CORES
 ## Test the build:
 (cd "$BUILD_DIR" ; ctest --output-on-failure -j$CORES)
 ## Create a link to it:
