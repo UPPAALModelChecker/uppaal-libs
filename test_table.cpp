@@ -13,11 +13,16 @@ int main()
 	using fn_int_double_int_int_to_double = double (*)(int, double, int, int);
 	using fn_int_int_int_int = int (*)(int, int, int, int);
 	using fn_int_int_int_double = int (*)(int, int, int, double);
-	using fn_int_int_int_intp_int_int = void(*)(int, int, int, int*, int, int);
-
+	using fn_int_int_int_intp_int_int = void (*)(int, int, int, int*, int, int);
 
 	try {
+#if defined(__linux__)
 		auto lib = Library{"./libtable.so"};
+#elif defined(__APPLE__) && defined(__MACH__)
+		auto lib = Library{"./libtable.dylib"};
+#else
+#error("Unknown platform")
+#endif
 		auto table_new_int = lib.lookup<fn_int_int_int_to_int>("table_new_int");
 		auto table_new_double = lib.lookup<fn_int_int_double_to_int>("table_new_double");
 		auto table_resize_int = lib.lookup<fn_int_int_int_int>("table_resize_int");
@@ -76,11 +81,10 @@ int main()
 		if (3.141 != read_double(id, 1, 1))
 			throw std::runtime_error("expected 3.141 at 1:1");
 
-		table_resize_double(id, rows+1, cols+1, 2.7);
-		if (2.7 != read_double(id, rows,cols))
+		table_resize_double(id, rows + 1, cols + 1, 2.7);
+		if (2.7 != read_double(id, rows, cols))
 			throw std::runtime_error("expected 2.7 at new corner");
 		table_write_csv(id, "table_output.csv");
-
 
 		const auto id2 = table_copy(id);
 		if (table_rows(id) != table_rows(id))
@@ -90,7 +94,7 @@ int main()
 		table_clear(id2);
 		if (table_rows(id2) != 0)
 			throw std::runtime_error("expected 0 rows");
-		auto id3 = table_new_double(3,4, 3.14);
+		auto id3 = table_new_double(3, 4, 3.14);
 		if (table_rows(id3) != 3)
 			throw std::runtime_error("expected 3 rows");
 		if (table_cols(id3) != 4)
