@@ -3,7 +3,7 @@ add_custom_target(data
         DEPENDS ${PROJECT_SOURCE_DIR}/table_input.csv
         BYPRODUCTS table_input.csv)
 
-add_library(errors OBJECT errors.cpp)
+add_library(errors OBJECT errors.cpp dynlib.h)
 
 add_library(table SHARED table.cpp)
 target_compile_options(table PRIVATE -Wall -Wextra)
