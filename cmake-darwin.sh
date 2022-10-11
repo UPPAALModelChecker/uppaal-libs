@@ -2,7 +2,7 @@
 
 set -e
 
-CORES=$(nproc)
+CORES=$(sysctl -n hw.ncpu)
 
 # Debug build, useful when debugging the library:
 BUILD_DIR=build-darwin-debug
