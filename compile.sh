@@ -59,25 +59,25 @@ if [ -z "$targets" ]; then
     ;;
   Darwin)
     targets=""
-    if [ -n "$(c++ --print-file-name=libstdc++.so)" ]; then
+    if [ -n "$(command -v c++)" ]; then
       targets="$targets macos64"
     fi
-    if [ -n "$(g++-10 --print-file-name=libstdc++.so)" ]; then
+    if [ -n "$(command -v g++-10)" ]; then
       targets="$targets macos64-brew-gcc10"
     fi
-    if [ -n "$(g++-11 --print-file-name=libstdc++.so)" ]; then
+    if [ -n "$(command -v g++-11)" ]; then
       targets="$targets macos64-brew-gcc11"
     fi
-    if [ -n "$(g++-12 --print-file-name=libstdc++.so)" ]; then
+    if [ -n "$(command -v g++-12)" ]; then
       targets="$targets macos64-brew-gcc12"
     fi
-    if [ -n "$(g++-mp-10 --print-file-name=libstdc++.so)" ]; then
+    if [ -n "$(command -v g++-mp-10)" ]; then
       targets="$targets macos64-ports-gcc10"
     fi
-    if [ -n "$(g++-mp-11 --print-file-name=libstdc++.so)" ]; then
+    if [ -n "$(command -v g++-mp-11)" ]; then
       targets="$targets macos64-ports-gcc11"
     fi
-    if [ -n "$(g++-mp-12 --print-file-name=libstdc++.so)" ]; then
+    if [ -n "$(command -v g++-mp-12)" ]; then
       targets="$targets macos64-ports-gcc12"
     fi
     ;;
