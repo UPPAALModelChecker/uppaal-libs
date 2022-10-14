@@ -1,6 +1,8 @@
 #include "library.hpp"
 #include <iostream>
 
+constexpr auto eps = 0.00001;
+
 /** Test for libtable */
 int main()
 {
@@ -18,8 +20,10 @@ int main()
 	try {
 #if defined(__linux__)
 		auto lib = Library{"./libtable.so"};
-#elif defined(__APPLE__) && defined(__MACH__)
+#elif defined(__APPLE__)
 		auto lib = Library{"./libtable.dylib"};
+#elif defined(_WIN32) || defined(__MINGW32__)
+		auto lib = Library{"./libtable.dll"};
 #else
 #error("Unknown platform")
 #endif
@@ -57,8 +61,8 @@ int main()
 		if (6 != read_double(id, 1, 1))
 			throw std::runtime_error("expected 6 at 1:1");
 		auto v1_2 = interpolate(id, 1.2, 0, 1);
-		if (5.2 != v1_2)
-			throw std::runtime_error("expected 5.2 at 1.2");
+		if (std::abs(5.2 - v1_2) > eps)
+			throw std::runtime_error("expected 5.2 at 1.2 got "+std::to_string(v1_2));
 		auto v0 = interpolate(id, 0.0, 0, 1);
 		if (5.0 != v0)
 			throw std::runtime_error("expected 5.0 at 0");

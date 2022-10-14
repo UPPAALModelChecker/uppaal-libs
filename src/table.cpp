@@ -1,27 +1,28 @@
 #include "csvtable.hpp"
 #include "errors.hpp"
+#include "dynlib.h"
 #include <fstream>
 #include <cmath> // nan
 
 #include <unistd.h> // getcwd
 
-extern "C" int table_new_int(int rows, int cols, int value);
-extern "C" int table_new_double(int rows, int cols, double value);
-extern "C" int table_resize_double(int id, int rows, int cols, double value);
-extern "C" int table_resize_int(int id, int rows, int cols, int value);
-extern "C" int table_read_csv(const char* csv_path, int skip_lines);
-extern "C" int table_write_csv(int id, const char* csv_path);
-extern "C" int table_copy(int id);
-extern "C" int table_clear(int id);
-extern "C" int table_rows(int id);
-extern "C" int table_cols(int id);
-extern "C" int read_int(int id, int row, int col);
-extern "C" double read_double(int id, int row, int col);
-extern "C" void write_int(int id, int row, int col, int value);
-extern "C" void write_double(int id, int row, int col, double value);
-extern "C" double interpolate(int id, double key, int key_col, int valu_col);
-extern "C" void read_int_col(int id, int row, int col, int* items, int offset, int count);
-extern "C" void read_int_row(int id, int row, int col, int* items, int offset, int count);
+C_PUBLIC int table_new_int(int rows, int cols, int value);
+C_PUBLIC int table_new_double(int rows, int cols, double value);
+C_PUBLIC int table_resize_double(int id, int rows, int cols, double value);
+C_PUBLIC int table_resize_int(int id, int rows, int cols, int value);
+C_PUBLIC int table_read_csv(const char* csv_path, int skip_lines);
+C_PUBLIC int table_write_csv(int id, const char* csv_path);
+C_PUBLIC int table_copy(int id);
+C_PUBLIC int table_clear(int id);
+C_PUBLIC int table_rows(int id);
+C_PUBLIC int table_cols(int id);
+C_PUBLIC int read_int(int id, int row, int col);
+C_PUBLIC double read_double(int id, int row, int col);
+C_PUBLIC void write_int(int id, int row, int col, int value);
+C_PUBLIC void write_double(int id, int row, int col, double value);
+C_PUBLIC double interpolate(int id, double key, int key_col, int valu_col);
+C_PUBLIC void read_int_col(int id, int row, int col, int* items, int offset, int count);
+C_PUBLIC void read_int_row(int id, int row, int col, int* items, int offset, int count);
 
 
 using namespace std::string_literals;
@@ -31,7 +32,7 @@ static std::vector<table_t> tables{};
 static std::unordered_map<std::string, table_t> cache;
 #endif
 
-extern "C" int table_new_int(int rows, int cols, int value)
+C_PUBLIC int table_new_int(int rows, int cols, int value)
 {
 	log_err("table_new(%d, %d, %d)", rows, cols, value);
 	auto& t = tables.emplace_back();
@@ -43,7 +44,7 @@ extern "C" int table_new_int(int rows, int cols, int value)
 	return res;
 }
 
-extern "C" int table_new_double(int rows, int cols, double value)
+C_PUBLIC int table_new_double(int rows, int cols, double value)
 {
 	log_err("table_new(%d, %d, %f)", rows, cols, value);
 	auto& t = tables.emplace_back();
@@ -83,7 +84,7 @@ static table_t load(const std::string& path, int skip_lines)
 }
 
 /** loads the table from CSV file, returns the table id, or -1 on error */
-extern "C" int table_read_csv(const char* csv_path, int skip_lines)
+C_PUBLIC int table_read_csv(const char* csv_path, int skip_lines)
 {
 	log_err("table_read_csv(%s, %d)", csv_path, skip_lines);
 	tables.push_back(load(csv_path, skip_lines)); // empty table in case of errors
@@ -93,7 +94,7 @@ extern "C" int table_read_csv(const char* csv_path, int skip_lines)
 }
 
 /** writes the table to CSV file, returns the number of rows, or -1 on error */
-extern "C" int table_write_csv(int id, const char* csv_path)
+C_PUBLIC int table_write_csv(int id, const char* csv_path)
 {
 	log_err("table_write_csv(%d, %s)", id, csv_path);
 	if (id < 0) {
@@ -115,7 +116,7 @@ extern "C" int table_write_csv(int id, const char* csv_path)
 	return res;
 }
 
-extern "C" int table_copy(int id)
+C_PUBLIC int table_copy(int id)
 {
 	log_err("table_copy(%d)", id);
 	if (id < 0) {
@@ -132,7 +133,7 @@ extern "C" int table_copy(int id)
 	return res;
 }
 
-extern "C" int table_clear(int id)
+C_PUBLIC int table_clear(int id)
 {
 	log_err("table_clear(%d)", id);
 	if (id < 0) {
@@ -151,7 +152,7 @@ extern "C" int table_clear(int id)
 
 
 /** User function: get the number of rows in the table */
-extern "C" int table_rows(int id)
+C_PUBLIC int table_rows(int id)
 {
 	log_err("table_rows(%d)", id);
 	if (id < 0) {
@@ -169,7 +170,7 @@ extern "C" int table_rows(int id)
 
 /** User function: get the number of columns in the first table row.
  * Note that some rows may have fewer or more columns (depends on the source of data). */
-extern "C" int table_cols(int id)
+C_PUBLIC int table_cols(int id)
 {
 	log_err("table_cols(%d)", id);
 	if (id < 0) {
@@ -221,7 +222,7 @@ static elem_t& access(int id, int row, int col)
 }
 
 /** User function: read a floating point number at row:col in the table. */
-extern "C" double read_double(int id, int row, int col)
+C_PUBLIC double read_double(int id, int row, int col)
 {
 	try {
 		return access(id, row, col);
@@ -231,13 +232,13 @@ extern "C" double read_double(int id, int row, int col)
 	return std::nan("");
 }
 
-extern "C" int read_int(int id, int row, int col)
+C_PUBLIC int read_int(int id, int row, int col)
 {
 	return (int)read_double(id, row, col);
 }
 
 /** User function: resize the entire table to a given rectangular size. Return id on success */
-extern "C" int table_resize_double(int id, int rows, int cols, double value)
+C_PUBLIC int table_resize_double(int id, int rows, int cols, double value)
 {
 	auto& table = get_table(id);
 	if (rows < 0) {
@@ -255,7 +256,7 @@ extern "C" int table_resize_double(int id, int rows, int cols, double value)
 }
 
 /** User function: resize the entire table to a given rectangular size. Return id on success */
-extern "C" int table_resize_int(int id, int rows, int cols, int value)
+C_PUBLIC int table_resize_int(int id, int rows, int cols, int value)
 {
 	auto& table = get_table(id);
 	if (rows < 0) {
@@ -273,7 +274,7 @@ extern "C" int table_resize_int(int id, int rows, int cols, int value)
 }
 
 
-extern "C" void write_double(int id, int row, int col, double value)
+C_PUBLIC void write_double(int id, int row, int col, double value)
 {
 	try {
 		access(id, row, col) = value;
@@ -282,12 +283,12 @@ extern "C" void write_double(int id, int row, int col, double value)
 	}
 }
 
-extern "C" void write_int(int id, int row, int col, int value)
+C_PUBLIC void write_int(int id, int row, int col, int value)
 {
 	write_double(id, row, col, value);
 }
 
-extern "C" double interpolate(int id, double key, int key_col, int valu_col)
+C_PUBLIC double interpolate(int id, double key, int key_col, int valu_col)
 {
 	auto res = 0.0;
 	try {
@@ -299,7 +300,7 @@ extern "C" double interpolate(int id, double key, int key_col, int valu_col)
 	return res;
 }
 
-extern "C" void read_int_col(int id, int row, int col, int* items, int offset, int count)
+C_PUBLIC void read_int_col(int id, int row, int col, int* items, int offset, int count)
 {
 	try {
 		log_err("read_int_col(%d, %d, %d, %p, %d %d)", id, row, col, items, offset, count);
@@ -320,7 +321,7 @@ extern "C" void read_int_col(int id, int row, int col, int* items, int offset, i
 	}
 }
 
-extern "C" void read_int_row(int id, int row, int col, int* items, int offset, int count)
+C_PUBLIC void read_int_row(int id, int row, int col, int* items, int offset, int count)
 {
 	try {
 		log_err("read_int_row(%d, %d, %d, %p, %d %d)", id, row, col, items, offset, count);
