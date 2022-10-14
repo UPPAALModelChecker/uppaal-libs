@@ -118,7 +118,7 @@ for target in $targets ; do
     SANITIZE="-DUBSAN=ON -DASAN=ON"
     ;;
   macos*)
-    extension=dynlib
+    extension=dylib
     SANITIZE="-DUBSAN=ON -DASAN=ON"
     ;;
   i686*mingw32)
