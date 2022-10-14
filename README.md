@@ -5,14 +5,24 @@ Generic examples of dynamically loaded libraries for Uppaal:
 * `libtable` read, manipulate and write table data via CSV files.
 
 ## Requirements
-* cmake version 3.15 or newer.
-* C++ compiler supporting C++17 (e.g. `g++-9` or newer).
-* `glibc` the same or newer version than in Uppaal distribution
+* `cmake` version 3.15 or newer.
+* C++ compiler supporting C++17: look for `c++`, `g++` (version 9 or later), `clang++`.
+* `glibc` the same or newer version than in Uppaal distribution.
+* `ninja` for better compiler error messages.
+
+For macOS, make sure the following are installed:
+* `xcode` from App Store.
+* Native `c++` or g++, or clang++ from [HomeBrew](https://brew.sh/) or [MacPorts](https://www.macports.org/).
+
+For Windows target (cross-compiling), make sure the following are installed:
+* `x86_64-w64-mingw32-g++` for 64bit binaries
+* `i686-w64-mingw32-g++` for 32bit binaries
+* `wine` for testing
 
 ## Compile
 
-Run `cmake-linux64.sh` to compile debug and release builds of the library:
-* Debug build produces `error.log` in the current directory for debugging.
+Run `compile.sh` to compile debug and release builds of the library:
+* Debug (`-dbg`) build produces `error.log` in the current directory for debugging.
 * Release build is optimized for speed and does not produce logs.
 
 ## Usage
