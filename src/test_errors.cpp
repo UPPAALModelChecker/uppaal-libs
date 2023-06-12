@@ -2,6 +2,7 @@
 
 #include <string>
 #include <fstream>
+#include <iostream>
 
 #ifdef NDEBUG
 #undef NDEBUG
@@ -23,9 +24,11 @@ int main()
 	assert(message_pos != std::string_view::npos);
 	const auto at_pos = content.find(" at ", message_pos+1);
 	const auto message = content.substr(message_pos+1, at_pos-message_pos-1);
+	//std::cout << "Message: " << message << std::endl;
 	assert(message == "Testing: errors 42 3.141000 in main");
 	const auto test_errors_pos = content.find("test_errors.cpp", at_pos+4);
 	assert(test_errors_pos != std::string_view::npos);
 	const auto location = content.substr(test_errors_pos);
-	assert(location == "test_errors.cpp:14\n");
+	//std::cout << "Location: " << location << std::endl;
+	assert(location == "test_errors.cpp:15\n");
 }
