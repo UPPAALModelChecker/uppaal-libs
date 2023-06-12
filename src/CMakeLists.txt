@@ -1,5 +1,5 @@
 add_custom_target(data
-        COMMAND cp ${PROJECT_SOURCE_DIR}/table_input.csv ${CMAKE_CURRENT_BINARY_DIR}/table_input.csv
+        COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_SOURCE_DIR}/table_input.csv ${CMAKE_CURRENT_BINARY_DIR}/table_input.csv
         DEPENDS ${PROJECT_SOURCE_DIR}/table_input.csv
         BYPRODUCTS table_input.csv)
 
