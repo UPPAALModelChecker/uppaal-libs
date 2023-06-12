@@ -5,29 +5,52 @@ Generic examples of dynamically loaded libraries for Uppaal:
 * `libtable` read, manipulate and write table data via CSV files.
 
 ## Requirements
-* `cmake` version 3.15 or newer.
+For **Linux**, make sure the following are installed:
+* `git` to checkout the repository
+* `cmake` version 3.15 or later.
 * C++ compiler supporting C++17: look for `c++`, `g++` (version 9 or later), `clang++`.
-* `glibc` the same or newer version than in Uppaal distribution.
-* `ninja` for better compiler error messages.
-
-For macOS, make sure the following are installed:
-* `xcode` from App Store.
-* Native `c++` or g++, or clang++ from [HomeBrew](https://brew.sh/) or [MacPorts](https://www.macports.org/).
-
-For Windows target (cross-compiling), make sure the following are installed:
+* C library (glibc) the same or newer version than in Uppaal distribution.
+* `ninja` (optional) for better compiler error messages.
+e.g.:
+```shell
+sudo apt install git cmake g++ ninja-build
+```
+For **cross-compiling for Windows** on Linux, make sure the following are installed:
 * `x86_64-w64-mingw32-g++` for 64bit binaries
 * `i686-w64-mingw32-g++` for 32bit binaries
-* `wine` for testing
+* `wine` and `binfmt-support` for testing
+e.g.:
+```shell
+sudo apt install g++-mingw-w64-x86-64-posix wine binfmt-support wine-binfmt
+```
+
+For **macOS**, make sure the following are installed:
+* `xcode` from App Store. Make sure to run at least once (which installs command line tools).
+* `cmake` version 3.15 or later.
+* Native `c++` or g++, or clang++ from [HomeBrew](https://brew.sh/) or [MacPorts](https://www.macports.org/).
+
+For **native Windows**, make sure the following are installed:
+* [git](https://git-scm.com/download/win) to checkout the repository
+* [cmake](https://cmake.org/download/) version 3.15 or newer to configure the build system
+* [Visual Studio](https://visualstudio.microsoft.com/vs/community/)
+
+
+## Checkout
+```shell
+git clone https://github.com/UPPAALModelChecker/uppaal-libs.git
+```
 
 ## Compile
 
-Run `compile.sh` to compile debug and release builds of the library:
+**Unix**: Run `compile.sh` to compile debug and release builds of the library:
 * Debug (`-dbg`) build produces `error.log` in the current directory for debugging.
 * Release build is optimized for speed and does not produce logs.
 
+**Windows**: Run `compile.bat` to compile and open the folder with optimized binaries upon success.
+
 ## Usage
 
-* Put `libtable.so` next to your project files.
+* Put `libtable.so` (`libtable.dll` on Windows) next to your project files.
 * Import the library into Uppaal model:
 ```c
 import "absolute/path/to/libtable.so" {
