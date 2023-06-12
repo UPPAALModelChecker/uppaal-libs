@@ -2,9 +2,8 @@
 #include "errors.hpp"
 #include "dynlib.h"
 #include <fstream>
+#include <string> // to_string/MSVC
 #include <cmath> // nan
-
-#include <unistd.h> // getcwd
 
 C_PUBLIC int table_new_int(int rows, int cols, int value);
 C_PUBLIC int table_new_double(int rows, int cols, double value);

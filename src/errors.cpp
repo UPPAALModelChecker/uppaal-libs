@@ -39,11 +39,13 @@ extern "C"
 void log_error(const char* function, const char* path, int line, const char* format, ...)
 {
 	auto file = get_error_file();
-	auto time = std::chrono::system_clock::now().time_since_epoch();
-	auto sec = std::chrono::duration_cast<std::chrono::seconds>(time);
-	auto usec = std::chrono::duration_cast<std::chrono::microseconds>(time-sec);
+	const auto time = std::chrono::system_clock::now().time_since_epoch();
+	const auto sec = std::chrono::duration_cast<std::chrono::seconds>(time);
+	const auto usec = std::chrono::duration_cast<std::chrono::microseconds>(time-sec);
 #if defined(__APPLE__) && defined(__MACH__)
 	fprintf(file, "%ld.%06d ", sec.count(), usec.count());
+#elif defined(_WIN32)
+	fprintf(file, "%lld.%06lld ", sec.count(), usec.count());
 #else
 	fprintf(file, "%d.%06d ", sec.count(), usec.count());
 #endif

@@ -7,10 +7,14 @@
 #define _ERRORS_HPP_
 
 #ifndef NDEBUG
+#ifdef _WIN32
+#define log_err(format, ...) log_error(__FUNCTION__, __FILE__, __LINE__, format, __VA_ARGS__)
+#else // not _WIN32
 #define log_err(format, ...) log_error(__FUNCTION__, __FILE__, __LINE__, format __VA_OPT__(,) __VA_ARGS__)
-#else
+#endif // _WIN32
+#else // with NDEBUG
 #define log_err(format, ...)
-#endif
+#endif // NDEBUG
 
 #ifdef __cplusplus
 extern "C"
