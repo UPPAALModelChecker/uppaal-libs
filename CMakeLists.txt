@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.15)
 
-project(uppaal_libs CXX)
+project(uppaal_libs)
 
 include(cmake/stdcpp.cmake)
 include(cmake/sanitizers.cmake)

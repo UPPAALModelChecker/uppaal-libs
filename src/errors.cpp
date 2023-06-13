@@ -31,9 +31,9 @@ FILE* open_error_file()
 #ifdef __STDC_LIB_EXT1__
 	auto err = errno_t{};
 	if (error_own) {
-		err = std::fopen_s(&file, path, "a");
+		err = fopen_s(&file, path, "a");
 	} else {
-		err = std::fopen_s(&file, path, "w");
+		err = fopen_s(&file, path, "w");
 		error_own = true;
 	}
 	if (err != 0) {
