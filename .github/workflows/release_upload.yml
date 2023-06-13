@@ -15,6 +15,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     env:
       TARGET_FILE: ${{ fromJson('{ "windows-latest":"table.dll","macos-latest":"libtable.dylib","ubuntu-latest":"libtable.so" }')[matrix.os] }}
+      OS_NAME: ${{ fromJson('{ "windows-latest":"windows","macos-latest":"macos","ubuntu-latest":"linux" }')[matrix.os] }}
 
     steps:
       - name: Checkout
@@ -34,18 +35,7 @@ jobs:
 
       - name: Package
         working-directory: ${{github.workspace}}/build-${{ matrix.build_type }}/src
-        run: zip -9 ${{github.workspace}}/uppaal-libs-${{ matrix.os }}.zip $TARGET_FILE
-
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
+        run: zip -9 ${{github.workspace}}/uppaal-libs-$OS_NAME.zip $TARGET_FILE
 
       - name: Upload Release Asset
         id: upload-release-asset
@@ -54,6 +44,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{github.workspace}}/uppaal-libs-${{ matrix.os }}.zip
-          asset_name: uppaal-libs-${{ matrix.os }}.zip
+          asset_path: ${{github.workspace}}/uppaal-libs-${{ env.OS_NAME }}.zip
+          asset_name: uppaal-libs-${{ env.OS_NAME }}.zip
           asset_content_type: application/zip
