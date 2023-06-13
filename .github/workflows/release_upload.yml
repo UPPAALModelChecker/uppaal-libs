@@ -1,0 +1,59 @@
+name: Upload Release Assets
+
+on:
+  push:
+    # Sequence of patterns matched against refs/tags
+    tags:
+      - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        build_type: [Release]
+    runs-on: ${{ matrix.os }}
+    env:
+      TARGET_FILE: ${{ fromJson('{ "windows-latest":"table.dll","macos-latest":"libtable.dylib","ubuntu-latest":"libtable.so" }')[matrix.os] }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure CMake
+        run: cmake -B ${{github.workspace}}/build-${{ matrix.build_type }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build-${{ matrix.build_type }} --config ${{ matrix.build_type }}
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build-${{ matrix.build_type }}
+        run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
+
+      - name: Package
+        working-directory: ${{github.workspace}}/build-${{ matrix.build_type }}/src
+        run: zip -9 ${{github.workspace}}/uppaal-libs-${{ matrix.os }}.zip $TARGET_FILE
+
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ${{github.workspace}}/uppaal-libs-${{ matrix.os }}.zip
+          asset_name: uppaal-libs-${{ matrix.os }}.zip
+          asset_content_type: application/zip
