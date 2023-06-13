@@ -6,13 +6,20 @@
 #include <iostream>
 
 #if defined(__linux__)
-const auto libname = "libtable.so";
+const auto table_path = std::filesystem::current_path() / "libtable.so";
 #elif defined(__APPLE__)
-const auto libname = "libtable.dylib";
+const auto table_path = std::filesystem::current_path() / "libtable.dylib";
 #elif defined(__MINGW32__)
-const auto libname = "libtable.dll";
+const auto table_path = std::filesystem::current_path() / "libtable.dll";
 #elif defined(_WIN32)
-const auto libname = "table.dll";
+const auto table_path = [] { 
+	// CMake on Windows puts binaries into CMAKE_CURRENT_BINARY_DIR/config subfolder (Debug/Release)
+	// CMake on Unix and VisualStudio put binaries into CMAKE_CURRENT_BINARY_DIR
+	char buffer[2048];
+	auto size = GetModuleFileNameA(NULL, buffer, 2048u); // path to current executable
+	buffer[size<2048 ? size : 2047] = '\0';
+	return std::filesystem::path{buffer}.parent_path() / "table.dll";
+}();
 #else
 #error("Unknown platform")
 #endif
@@ -34,8 +41,8 @@ TEST_CASE("load libtable")
 	using fn_int_int_int_intp_int_int = void (*)(int, int, int, int*, int, int);
 
 	try {
-		auto lib_path = std::filesystem::current_path() / libname;
-		auto lib_path_str = lib_path.string();
+		auto lib_path_str = table_path.string();
+		std::cout << "Loading " << lib_path_str << std::endl;
 		auto lib = Library{lib_path_str.c_str()};
 		auto table_new_int [[maybe_unused]] = lib.lookup<fn_int_int_int_to_int>("table_new_int");
 		auto table_new_double = lib.lookup<fn_int_int_double_to_int>("table_new_double");

@@ -1,16 +1,19 @@
 @echo off
-echo Compiling for Windows using CMake
-cmake -B build-release .
+set BUILD_TYPE=Release
+set BUILD_DIR=build-release
+
+echo Compiling %BUILD_TYPE% in %BUILD_DIR%
+cmake -B %BUILD_DIR% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% .
 if %ERRORLEVEL% NEQ 0 goto Failure
-cmake --build build-release
+cmake --build %BUILD_DIR% --config %BUILD_TYPE%
 if %ERRORLEVEL% NEQ 0 goto Failure
-cd build-release
-ctest --output-on-failure
+cd %BUILD_DIR%
+ctest --build-config %BUILD_TYPE% --output-on-failure
 if %ERRORLEVEL% NEQ 0 goto Failure
 cd ..
 echo SUCCESS!
-echo Binaries are in %cd%\build-release\src
-start "" "%cd%\build-release\src"
+echo Binaries are in %cd%\%BUILD_DIR%\src\%BUILD_TYPE%
+start "" "%cd%\%BUILD_DIR%\src\%BUILD_TYPE%"
 pause
 exit 0
 

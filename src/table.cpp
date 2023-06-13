@@ -225,7 +225,7 @@ C_PUBLIC double read_double(int id, int row, int col)
 {
 	try {
 		return access(id, row, col);
-	} catch (std::runtime_error& e) {
+	} catch (std::runtime_error& e [[maybe_unused]]) {
 		log_err("%s", e.what());
 	}
 	return std::nan("");
@@ -277,7 +277,7 @@ C_PUBLIC void write_double(int id, int row, int col, double value)
 {
 	try {
 		access(id, row, col) = value;
-	} catch (std::runtime_error& e) {
+	} catch (std::runtime_error& e [[maybe_unused]]) {
 		log_err("%s", e.what());
 	}
 }
@@ -293,7 +293,7 @@ C_PUBLIC double interpolate(int id, double key, int key_col, int valu_col)
 	try {
 		auto& table = get_table(id);
 		res = interpolate(table, key, key_col, valu_col);
-	} catch (std::runtime_error& e) {
+	} catch (std::runtime_error& e [[maybe_unused]]) {
 		log_err("%s", e.what());
 	}
 	return res;
@@ -315,7 +315,7 @@ C_PUBLIC void read_int_col(int id, int row, int col, int* items, int offset, int
 		auto rb = std::next(std::begin(table), row), re = std::end(table);
 		for (auto i = 0; i < count && rb != re; ++i, ++rb)
 			items[offset + i] = static_cast<int>((*rb)[static_cast<size_t>(col)]);
-	} catch(std::runtime_error& e) {
+	} catch (std::runtime_error& e [[maybe_unused]]) {
 		log_err("%s", e.what());
 	}
 }
@@ -336,7 +336,7 @@ C_PUBLIC void read_int_row(int id, int row, int col, int* items, int offset, int
 		auto rb = std::next(std::begin(table), row);
 		for (auto i = 0; i < count; ++i)
 			items[offset + i] = static_cast<int>((*rb)[static_cast<size_t>(col+i)]);
-	} catch(std::runtime_error& e) {
+	} catch (std::runtime_error& e [[maybe_unused]]) {
 		log_err("%s", e.what());
 	}
 }

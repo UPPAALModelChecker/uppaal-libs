@@ -6,16 +6,15 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON) # -fPIC
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # for clang-tidy
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    message(STATUS "Adding extra warnings for ${CMAKE_CXX_COMPILER_ID} compiler")
+    message(STATUS "Extra warnings for ${CMAKE_CXX_COMPILER_ID} compiler")
     add_compile_options(-Wall -Wextra -Wno-cast-function-type)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    message(STATUS "Adding extra warnings for ${CMAKE_CXX_COMPILER_ID} compiler")
+    message(STATUS "Extra warnings for ${CMAKE_CXX_COMPILER_ID} compiler")
     add_compile_options(-Wall -Wextra -Wno-cast-function-type)
 elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    message(STATUS "Adding extra warnings for ${CMAKE_CXX_COMPILER_ID} compiler")
-    #add_compile_options(/permissive- /WX /Wall)
-	add_compile_options(/Wall -wd5045 -wd4668)
-    add_compile_definitions(__STDC_LIB_EXT1__) # enable fopen_s et al
+    message(STATUS "Extra warnings for ${CMAKE_CXX_COMPILER_ID} compiler")
+    add_compile_options(/permissive- /Wall -wd5045 -wd4668 -wd4710 -wd4711)
+    add_compile_definitions(__STDC_LIB_EXT1__ NOMINMAX) # enable fopen_s, kill min/max macros
 else()
-    message(WARNING "No extra warnings for ${CMAKE_CXX_COMPILER_ID} compiler")
+    message(STATUS "No extra warnings for ${CMAKE_CXX_COMPILER_ID} compiler")
 endif()
