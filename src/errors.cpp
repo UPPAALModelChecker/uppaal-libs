@@ -47,7 +47,7 @@ void log_error(const char* function, const char* path, int line, const char* for
 #elif defined(_WIN32)
 	fprintf(file, "%lld.%06lld ", sec.count(), usec.count());
 #else
-	fprintf(file, "%d.%06d ", sec.count(), usec.count());
+	fprintf(file, "%ld.%06ld ", sec.count(), usec.count());
 #endif
 	va_list argp;
 	va_start(argp, format);

@@ -1,10 +1,12 @@
 #include "library.hpp"
+
+#include <doctest/doctest.h>
+
 #include <iostream>
 
 constexpr auto eps = 0.00001;
 
-/** Test for libtable */
-int main()
+TEST_CASE("load libtable")
 {
 	using fn_str_int_to_int = int (*)(const char*, int);
 	using fn_int_str_to_int = int (*)(int, const char*);
@@ -49,8 +51,8 @@ int main()
 		const auto id = table_read_csv("table_input.csv", 0);
 		auto rows = table_rows(id);
 		auto cols = table_cols(id);
-		if (rows == 0 || cols == 0)
-			throw std::runtime_error("empty table");
+		REQUIRE(rows != 0); // table should not be empty
+		REQUIRE(cols != 0);
 
 		// read access:
 		for (int i = 0; i < rows; ++i) {
@@ -58,58 +60,46 @@ int main()
 				std::cout << read_double(id, i, j) << " ";
 			std::cout << '\n';
 		}
-		if (6 != read_double(id, 1, 1))
-			throw std::runtime_error("expected 6 at 1:1");
-		auto v1_2 = interpolate(id, 1.2, 0, 1);
-		if (std::abs(5.2 - v1_2) > eps)
-			throw std::runtime_error("expected 5.2 at 1.2 got "+std::to_string(v1_2));
-		auto v0 = interpolate(id, 0.0, 0, 1);
-		if (5.0 != v0)
-			throw std::runtime_error("expected 5.0 at 0");
-		auto v5_5 = interpolate(id, 5.5, 0, 1);
-		if (8.0 != v5_5)
-			throw std::runtime_error("expected 8.0 at 5.5");
+		CHECK(6 == read_double(id, 1, 1));
+		const auto v1_2 = interpolate(id, 1.2, 0, 1);
+		CHECK(v1_2 == doctest::Approx{5.2}.epsilon(eps));
+		const auto v0 = interpolate(id, 0.0, 0, 1);
+		CHECK(v0 == doctest::Approx{5.0}.epsilon(eps));
+		const auto v5_5 = interpolate(id, 5.5, 0, 1);
+		CHECK(8.0 == v5_5);
 		// read in bulk:
 		int column1[rows];
 		read_int_col(id, 0, 1, column1, 0, rows);
-		if (column1[0] != 5 || column1[1] != 6 || column1[2] != 7 || column1[3] != 8)
-			throw std::runtime_error("wrong column1 values");
+		CHECK(column1[0] == 5);
+		CHECK(column1[1] == 6);
+		CHECK(column1[2] == 7);
+		CHECK(column1[3] == 8);
 
 		int row1[cols];
 		read_int_row(id, 1, 0, row1, 0, cols);
-		if (row1[0] != 2 || row1[1] != 6 || row1[2] != 10)
-			throw std::runtime_error("wrong row1 values");
+		CHECK(row1[0] == 2);
+		CHECK(row1[1] == 6);
+		CHECK(row1[2] == 10);
 
 		// write access:
 		write_double(id, 1, 1, 3.141);
-		if (3.141 != read_double(id, 1, 1))
-			throw std::runtime_error("expected 3.141 at 1:1");
+		CHECK(3.141 == read_double(id, 1, 1));
 
 		table_resize_double(id, rows + 1, cols + 1, 2.7);
-		if (2.7 != read_double(id, rows, cols))
-			throw std::runtime_error("expected 2.7 at new corner");
+		CHECK(2.7 == read_double(id, rows, cols));
 		table_write_csv(id, "table_output.csv");
 
 		const auto id2 = table_copy(id);
-		if (table_rows(id) != table_rows(id))
-			throw std::runtime_error("expected identical number of rows");
-		if (table_cols(id) != table_cols(id))
-			throw std::runtime_error("expected identical number of cols");
+		CHECK(table_rows(id) == table_rows(id2));
+		CHECK(table_cols(id) == table_cols(id2));
 		table_clear(id2);
-		if (table_rows(id2) != 0)
-			throw std::runtime_error("expected 0 rows");
+		CHECK(table_rows(id2) == 0);
 		auto id3 = table_new_double(3, 4, 3.14);
-		if (table_rows(id3) != 3)
-			throw std::runtime_error("expected 3 rows");
-		if (table_cols(id3) != 4)
-			throw std::runtime_error("expected 4 columns");
-		if (read_double(id3, 2, 2) != 3.14)
-			throw std::runtime_error("expected 3.14 at 2:2");
-		lib.~Library();
-		std::cout << "Test passed." << std::endl;
-		return 0;
+		CHECK(table_rows(id3) == 3);
+		CHECK(table_cols(id3) == 4);
+		CHECK(read_double(id3, 2, 2) == 3.14);
 	} catch (std::runtime_error& err) {
-		std::cerr << "Test failed: " << err.what() << std::endl;
-		return -1;
+		std::cerr << "Failed: " << err.what() << std::endl;
+		CHECK(false);
 	}
 }
