@@ -1,0 +1,46 @@
+name: Build
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - include/**
+      - src/**
+      - cmake/**
+  pull_request:
+    branches: [ "main" ]
+    types: [synchronize, opened, reopened, ready_for_review]
+    paths:
+      - include/**
+      - src/**
+      - cmake/**
+
+concurrency:
+  group: Server-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        build_type: [Debug]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Configure CMake
+      # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
+      # See https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html?highlight=cmake_build_type
+      run: cmake -B ${{github.workspace}}/build-${{ matrix.build_type }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+    - name: Build
+      # Build your program with the given configuration
+      run: cmake --build ${{github.workspace}}/build-${{ matrix.build_type }} --config ${{ matrix.build_type }}
+
+    - name: Test
+      working-directory: ${{github.workspace}}/build-${{ matrix.build_type }}
+      # Execute tests defined by the CMake configuration.
+      # See https://cmake.org/cmake/help/latest/manual/ctest.1.html for more detail
+      run: ctest --build-config ${{ matrix.build_type }} --output-on-failure

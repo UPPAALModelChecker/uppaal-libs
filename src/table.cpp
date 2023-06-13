@@ -35,10 +35,10 @@ C_PUBLIC int table_new_int(int rows, int cols, int value)
 {
 	log_err("table_new(%d, %d, %d)", rows, cols, value);
 	auto& t = tables.emplace_back();
-	t.resize(rows);
+	t.resize(static_cast<size_t>(rows));
 	for (auto& row : t)
-		row.resize(cols, value);
-	auto res = tables.size()-1;
+		row.resize(static_cast<size_t>(cols), value);
+	const auto res = static_cast<int>(tables.size())-1;
 	log_err("table_new: ", res);
 	return res;
 }
@@ -47,10 +47,10 @@ C_PUBLIC int table_new_double(int rows, int cols, double value)
 {
 	log_err("table_new(%d, %d, %f)", rows, cols, value);
 	auto& t = tables.emplace_back();
-	t.resize(rows);
+	t.resize(static_cast<size_t>(rows));
 	for (auto& row : t)
-		row.resize(cols, value);
-	auto res = tables.size()-1;
+		row.resize(static_cast<size_t>(cols), value);
+	const auto res = static_cast<int>(tables.size())-1;
 	log_err("table_new: ", res);
 	return res;
 }
@@ -87,20 +87,20 @@ C_PUBLIC int table_read_csv(const char* csv_path, int skip_lines)
 {
 	log_err("table_read_csv(%s, %d)", csv_path, skip_lines);
 	tables.push_back(load(csv_path, skip_lines)); // empty table in case of errors
-	auto res = tables.size()-1;
+	auto res = static_cast<int>(tables.size())-1;
 	log_err("table_read_csv: %d (id)", res);
 	return res;
 }
 
 /** writes the table to CSV file, returns the number of rows, or -1 on error */
-C_PUBLIC int table_write_csv(int id, const char* csv_path)
+C_PUBLIC int table_write_csv(const int id, const char* csv_path)
 {
 	log_err("table_write_csv(%d, %s)", id, csv_path);
 	if (id < 0) {
 		log_err("table id is too low: %d", id);
 		return -1;
 	}
-	if ((size_t)id >= tables.size()) {
+	if (id >= static_cast<int>(tables.size())) {
 		log_err("table id is too high: %d", id);
 		return -1;
 	}
@@ -109,25 +109,25 @@ C_PUBLIC int table_write_csv(int id, const char* csv_path)
 		log_err("failed to write: %s", csv_path);
 		return -1;
 	}
-	table_write_csv(os, tables[id], ',');
-	auto res = tables[id].size();
+	table_write_csv(os, tables[static_cast<size_t>(id)], ',');
+	auto res = static_cast<int>(tables[static_cast<size_t>(id)].size());
 	log_err("table_write_csv: %d (rows)", res);
 	return res;
 }
 
-C_PUBLIC int table_copy(int id)
+C_PUBLIC int table_copy(const int id)
 {
 	log_err("table_copy(%d)", id);
 	if (id < 0) {
 		log_err("table id is too low: %d", id);
 		return -1;
 	}
-	if ((size_t)id >= tables.size()) {
+	if (id >= static_cast<int>(tables.size())) {
 		log_err("table id is too high: %d", id);
 		return -1;
 	}
-	tables.push_back(tables[id]);
-	auto res = tables.size()-1;
+	tables.push_back(tables[static_cast<size_t>(id)]);
+	auto res = static_cast<int>(tables.size())-1;
 	log_err("table_copy: %d (id)", res);
 	return res;
 }
@@ -139,52 +139,52 @@ C_PUBLIC int table_clear(int id)
 		log_err("table id is too low: %d", id);
 		return -1;
 	}
-	if ((size_t)id >= tables.size()) {
+	if (id >= static_cast<int>(tables.size())) {
 		log_err("table id is too high: %d", id);
 		return -1;
 	}
-	tables[id].clear();
-	tables[id].shrink_to_fit();
+	tables[static_cast<size_t>(id)].clear();
+	tables[static_cast<size_t>(id)].shrink_to_fit();
 	log_err("table_clear: %d (id)", id);
 	return id;
 }
 
 
 /** User function: get the number of rows in the table */
-C_PUBLIC int table_rows(int id)
+C_PUBLIC int table_rows(const int id)
 {
 	log_err("table_rows(%d)", id);
 	if (id < 0) {
 		log_err("table id is too low: %d", id);
 		return -1;
 	}
-	if ((size_t)id >= tables.size()) {
+	if (id >= static_cast<int>(tables.size())) {
 		log_err("table id is too high: %d", id);
 		return -1;
 	}
-	auto res = tables[id].size();
+	auto res = static_cast<int>(tables[static_cast<size_t>(id)].size());
 	log_err("table_rows: %d (rows)", res);
 	return res;
 }
 
 /** User function: get the number of columns in the first table row.
  * Note that some rows may have fewer or more columns (depends on the source of data). */
-C_PUBLIC int table_cols(int id)
+C_PUBLIC int table_cols(const int id)
 {
 	log_err("table_cols(%d)", id);
 	if (id < 0) {
 		log_err("table id is too low: %d", id);
 		return -1;
 	}
-	if ((size_t)id >= tables.size()) {
+	if (id >= static_cast<int>(tables.size())) {
 		log_err("table id is too high: %d", id);
 		return -1;
 	}
-	if (tables[id].empty()) {
+	if (tables[static_cast<size_t>(id)].empty()) {
 		log_err("%s", "table is empty");
 		return 0;
 	}
-	auto res = tables[id].front().size();
+	const auto res = static_cast<int>(tables[static_cast<size_t>(id)].front().size());
 	log_err("table_rows: %d (cols)", res);
 	return res;
 }
@@ -193,9 +193,9 @@ static table_t& get_table(int id)
 {
 	if (id < 0)
 		throw std::runtime_error("table id too low: "s + std::to_string(id));
-	if ((size_t)id >= tables.size())
+	if (id >= static_cast<int>(tables.size()))
 		throw std::runtime_error("table id too high: "s + std::to_string(id));
-	return tables[id];
+	return tables[static_cast<size_t>(id)];
 }
 
 /**
@@ -210,14 +210,14 @@ static elem_t& access(int id, int row, int col)
 	auto& table = get_table(id);
 	if (row < 0)
 		throw std::runtime_error("negative row: "s + std::to_string(row));
-	if (table.size() <= (size_t)row)
+	if (static_cast<int>(table.size()) <= row)
 		throw std::runtime_error("row overflow: "s + std::to_string(row));
 	if (col < 0)
 		throw std::runtime_error("negative column: "s + std::to_string(col));
-	auto& table_row = table[row];
-	if (table_row.size() <= (size_t)col)
+	auto& table_row = table[static_cast<size_t>(row)];
+	if (static_cast<int>(table_row.size()) <= col)
 		throw std::runtime_error("column overflow: "s + std::to_string(col));
-	return table_row[col];
+	return table_row[static_cast<size_t>(col)];
 }
 
 /** User function: read a floating point number at row:col in the table. */
@@ -225,7 +225,7 @@ C_PUBLIC double read_double(int id, int row, int col)
 {
 	try {
 		return access(id, row, col);
-	} catch (std::runtime_error& e) {
+	} catch (std::runtime_error& e [[maybe_unused]]) {
 		log_err("%s", e.what());
 	}
 	return std::nan("");
@@ -248,9 +248,9 @@ C_PUBLIC int table_resize_double(int id, int rows, int cols, double value)
 		log_err("negative column number: %d", cols);
 		return -1;
 	}
-	table.resize(rows);
+	table.resize(static_cast<size_t>(rows));
 	for (auto& row: table)
-		row.resize(cols, value);
+		row.resize(static_cast<size_t>(cols), value);
 	return id;
 }
 
@@ -266,9 +266,9 @@ C_PUBLIC int table_resize_int(int id, int rows, int cols, int value)
 		log_err("negative column number: %d", cols);
 		return -1;
 	}
-	table.resize(rows);
+	table.resize(static_cast<size_t>(rows));
 	for (auto& row: table)
-		row.resize(cols, value);
+		row.resize(static_cast<size_t>(cols), value);
 	return id;
 }
 
@@ -277,7 +277,7 @@ C_PUBLIC void write_double(int id, int row, int col, double value)
 {
 	try {
 		access(id, row, col) = value;
-	} catch (std::runtime_error& e) {
+	} catch (std::runtime_error& e [[maybe_unused]]) {
 		log_err("%s", e.what());
 	}
 }
@@ -293,7 +293,7 @@ C_PUBLIC double interpolate(int id, double key, int key_col, int valu_col)
 	try {
 		auto& table = get_table(id);
 		res = interpolate(table, key, key_col, valu_col);
-	} catch (std::runtime_error& e) {
+	} catch (std::runtime_error& e [[maybe_unused]]) {
 		log_err("%s", e.what());
 	}
 	return res;
@@ -308,14 +308,14 @@ C_PUBLIC void read_int_col(int id, int row, int col, int* items, int offset, int
 			throw std::runtime_error("negative row");
 		if (col < 0)
 			throw std::runtime_error("negative column");
-		if ((size_t)row+count > table.size())
+		if (row+count > static_cast<int>(table.size()))
 			throw std::runtime_error("row range is beyond table size");
-		if ((size_t)col >= table[row].size())
+		if (col >= static_cast<int>(table[static_cast<size_t>(row)].size()))
 			throw std::runtime_error("column is beyond table size");
 		auto rb = std::next(std::begin(table), row), re = std::end(table);
 		for (auto i = 0; i < count && rb != re; ++i, ++rb)
-			items[offset + i] = (*rb)[col];
-	} catch(std::runtime_error& e) {
+			items[offset + i] = static_cast<int>((*rb)[static_cast<size_t>(col)]);
+	} catch (std::runtime_error& e [[maybe_unused]]) {
 		log_err("%s", e.what());
 	}
 }
@@ -329,14 +329,14 @@ C_PUBLIC void read_int_row(int id, int row, int col, int* items, int offset, int
 			throw std::runtime_error("negative row");
 		if (col < 0)
 			throw std::runtime_error("negative column");
-		if ((size_t)row >= table.size())
+		if (row >= static_cast<int>(table.size()))
 			throw std::runtime_error("row is beyond table size");
-		if ((size_t)col+count > table[row].size())
+		if (col+count > static_cast<int>(table[static_cast<size_t>(row)].size()))
 			throw std::runtime_error("column range is beyond table size");
 		auto rb = std::next(std::begin(table), row);
 		for (auto i = 0; i < count; ++i)
-			items[offset + i] = (*rb)[col+i];
-	} catch(std::runtime_error& e) {
+			items[offset + i] = static_cast<int>((*rb)[static_cast<size_t>(col+i)]);
+	} catch (std::runtime_error& e [[maybe_unused]]) {
 		log_err("%s", e.what());
 	}
 }

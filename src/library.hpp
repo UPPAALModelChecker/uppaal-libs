@@ -2,9 +2,10 @@
  * C++ wrapper for opening dynamically linked libraries
  * Author: Marius Mikucionis <marius@cs.aau.dk>
  */
-#ifndef LIBRARY_HPP
-#define LIBRARY_HPP
+#ifndef _LIBRARY_HPP_
+#define _LIBRARY_HPP_
 
+#include <string> // to_string
 #include <stdexcept> // runtime_error
 
 #if defined(__linux__) || defined(__APPLE__)
@@ -47,6 +48,7 @@ public:
 };
 
 #elif defined(_WIN32) || defined(__MINGW32__)
+#include <system_error>
 #include <windows.h>
 
 class Library
@@ -57,8 +59,10 @@ public:
 	Library(const char* filepath):
 		handle{LoadLibrary(TEXT(filepath))}
 	{
-		if (!handle)
-			throw std::runtime_error{"Failed loading library with error "+std::to_string(GetLastError())};
+		if (!handle) {
+			auto err_no = static_cast<int>(::GetLastError());
+			throw std::runtime_error{std::system_category().message(err_no)};
+		}
 	}
 	~Library() noexcept
 	{
@@ -76,7 +80,8 @@ public:
 	template <typename FnType>
 	FnType lookup(const char* fn_name)
 	{
-		auto res = (FnType)(GetProcAddress(handle, fn_name));
+#pragma warning(suppress : 4191)
+		auto res = reinterpret_cast<FnType>(GetProcAddress(handle, fn_name));
 		if (res == nullptr)
 			throw std::runtime_error{"Failed symbol lookup with error "+std::to_string(GetLastError())};
 		return res;
@@ -88,4 +93,4 @@ public:
 #error "unsupported platform"
 #endif
 
-#endif /* LIBRARY_HPP */
+#endif /* _LIBRARY_HPP_ */
