@@ -1,5 +1,6 @@
 #include "errors.hpp"
 
+#include <algorithm> // hack to fix doctest for MSVC
 #include <doctest/doctest.h>
 
 #include <string>

@@ -1,5 +1,6 @@
 #include "library.hpp"
 
+#include <algorithm> // hack to fix doctest for MSVC
 #include <doctest/doctest.h>
 
 #include <iostream>
@@ -68,15 +69,15 @@ TEST_CASE("load libtable")
 		const auto v5_5 = interpolate(id, 5.5, 0, 1);
 		CHECK(8.0 == v5_5);
 		// read in bulk:
-		int column1[rows];
-		read_int_col(id, 0, 1, column1, 0, rows);
+		auto column1 = std::vector<int>(rows, 0);
+		read_int_col(id, 0, 1, column1.data(), 0, rows);
 		CHECK(column1[0] == 5);
 		CHECK(column1[1] == 6);
 		CHECK(column1[2] == 7);
 		CHECK(column1[3] == 8);
 
-		int row1[cols];
-		read_int_row(id, 1, 0, row1, 0, cols);
+		auto row1 = std::vector<int>(cols, 0);
+		read_int_row(id, 1, 0, row1.data(), 0, cols);
 		CHECK(row1[0] == 2);
 		CHECK(row1[1] == 6);
 		CHECK(row1[2] == 10);

@@ -314,7 +314,7 @@ C_PUBLIC void read_int_col(int id, int row, int col, int* items, int offset, int
 			throw std::runtime_error("column is beyond table size");
 		auto rb = std::next(std::begin(table), row), re = std::end(table);
 		for (auto i = 0; i < count && rb != re; ++i, ++rb)
-			items[offset + i] = (*rb)[col];
+			items[offset + i] = static_cast<int>((*rb)[col]);
 	} catch(std::runtime_error& e) {
 		log_err("%s", e.what());
 	}
@@ -335,7 +335,7 @@ C_PUBLIC void read_int_row(int id, int row, int col, int* items, int offset, int
 			throw std::runtime_error("column range is beyond table size");
 		auto rb = std::next(std::begin(table), row);
 		for (auto i = 0; i < count; ++i)
-			items[offset + i] = (*rb)[col+i];
+			items[offset + i] = static_cast<int>((*rb)[col+i]);
 	} catch(std::runtime_error& e) {
 		log_err("%s", e.what());
 	}
