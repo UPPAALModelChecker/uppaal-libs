@@ -1,9 +1,22 @@
 #include "library.hpp"
 
-#include <algorithm> // hack to fix doctest for MSVC
 #include <doctest/doctest.h>
 
+#include <filesystem>
 #include <iostream>
+
+#if defined(__linux__)
+const auto libname = "libtable.so";
+#elif defined(__APPLE__)
+const auto libname = "libtable.dylib";
+#elif defined(__MINGW32__)
+const auto libname = "libtable.dll;
+#elif defined(_WIN32)
+const auto libname = "table.dll";
+#else
+#error("Unknown platform")
+#endif
+
 
 constexpr auto eps = 0.00001;
 
@@ -21,15 +34,9 @@ TEST_CASE("load libtable")
 	using fn_int_int_int_intp_int_int = void (*)(int, int, int, int*, int, int);
 
 	try {
-#if defined(__linux__)
-		auto lib = Library{"./libtable.so"};
-#elif defined(__APPLE__)
-		auto lib = Library{"./libtable.dylib"};
-#elif defined(_WIN32) || defined(__MINGW32__)
-		auto lib = Library{"./libtable.dll"};
-#else
-#error("Unknown platform")
-#endif
+		auto lib_path = std::filesystem::current_path() / libname;
+		auto lib_path_str = lib_path.string();
+		auto lib = Library{lib_path_str.c_str()};
 		auto table_new_int [[maybe_unused]] = lib.lookup<fn_int_int_int_to_int>("table_new_int");
 		auto table_new_double = lib.lookup<fn_int_int_double_to_int>("table_new_double");
 		auto table_resize_int [[maybe_unused]] = lib.lookup<fn_int_int_int_int>("table_resize_int");
@@ -69,14 +76,14 @@ TEST_CASE("load libtable")
 		const auto v5_5 = interpolate(id, 5.5, 0, 1);
 		CHECK(8.0 == v5_5);
 		// read in bulk:
-		auto column1 = std::vector<int>(rows, 0);
+		auto column1 = std::vector<int>(static_cast<size_t>(rows), 0);
 		read_int_col(id, 0, 1, column1.data(), 0, rows);
 		CHECK(column1[0] == 5);
 		CHECK(column1[1] == 6);
 		CHECK(column1[2] == 7);
 		CHECK(column1[3] == 8);
 
-		auto row1 = std::vector<int>(cols, 0);
+		auto row1 = std::vector<int>(static_cast<size_t>(cols), 0);
 		read_int_row(id, 1, 0, row1.data(), 0, cols);
 		CHECK(row1[0] == 2);
 		CHECK(row1[1] == 6);

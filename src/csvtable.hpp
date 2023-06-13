@@ -2,8 +2,8 @@
  * CSV table representation and its input and output.
  * Author: Marius Mikucionis <marius@cs.aau.dk>
  */
-#ifndef CSVTABLE_HPP
-#define CSVTABLE_HPP
+#ifndef _CSVTABLE_HPP_
+#define _CSVTABLE_HPP_
 
 #include <iostream>
 #include <vector>
@@ -70,29 +70,28 @@ void skip_comments(std::istream& is)
 	using namespace std::string_literals;
 	if (key_column < 0)
 		throw std::runtime_error("negative key column");
-	if ((size_t)key_column >= table.front().size())
+	if (key_column >= static_cast<int>(table.front().size()))
 		throw std::runtime_error("key column overflow");
 	if (value_column < 0)
 		throw std::runtime_error("negative value column");
-	if ((size_t)value_column >= table.front().size())
+	if (value_column >= static_cast<int>(table.front().size()))
 		throw std::runtime_error("value column overflow");
 	auto it2 = std::lower_bound(std::begin(table), std::end(table), key,
-								[=](const row_t& row, const elem_t& key) {
-									return row[key_column] < key;
+								[=](const row_t& row, const elem_t& key) { return row[static_cast<size_t>(key_column)]<key;
 								});
 	if (it2 == std::end(table))
-		return table.back()[value_column]; // extrapolate with the last value
+		return table.back()[static_cast<size_t>(value_column)]; // extrapolate with the last value
 	if (it2 == std::begin(table))
-		return table.front()[value_column]; // extrapolate with the first value
+		return table.front()[static_cast<size_t>(value_column)]; // extrapolate with the first value
 	auto it1 = std::prev(it2);
 	auto& row1 = (*it1);
 	auto& row2 = (*it2);
-	auto& x1 = row1[key_column];
-	auto& x2 = row2[key_column];
-	auto& y1 = row1[value_column];
+	auto& x1 = row1[static_cast<size_t>(key_column)];
+	auto& x2 = row2[static_cast<size_t>(key_column)];
+	auto& y1 = row1[static_cast<size_t>(value_column)];
 	if (x2 == x1) // protect against div-by-zero
 		return y1; // don't interpolate: pick the first
-	auto& y2 = row2[value_column];
+	auto& y2 = row2[static_cast<size_t>(value_column)];
 	return y1 + (y2-y1)/(x2-x1)*(key-x1); // linear interpolation
 }
 
@@ -120,4 +119,4 @@ std::ostream& dictionary_write_csv(std::ostream& os, const dictionary_t& diction
 	return os;
 }
 
-#endif /* TABLE_HPP */
+#endif /* _CSVTABLE_HPP_ */
