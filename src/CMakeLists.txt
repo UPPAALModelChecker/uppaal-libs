@@ -6,7 +6,6 @@ add_custom_target(data
 add_library(errors OBJECT errors.cpp)
 
 add_library(table SHARED table.cpp)
-target_compile_options(table PRIVATE -Wall -Wextra)
 target_link_libraries(table PRIVATE errors)
 add_dependencies(table data)
 
