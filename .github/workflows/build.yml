@@ -3,9 +3,17 @@ name: CMake
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - include/**
+      - src/**
+      - cmake/**
   pull_request:
     branches: [ "main" ]
     types: [synchronize, opened, reopened, ready_for_review]
+    paths:
+      - include/**
+      - src/**
+      - cmake/**
 
 env:
   # Customize the CMake build type here (Release, Debug, RelWithDebInfo, etc.)
@@ -16,11 +24,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  target_matrix:
+  build:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        build_type: [Debug, Release]
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        build_type: [Debug]
     runs-on: ${{ matrix.os }}
 
     steps:

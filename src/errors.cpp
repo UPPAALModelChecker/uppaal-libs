@@ -6,6 +6,7 @@
 #include <chrono>
 #include <cstdio>	   // fopen, fprintf
 #include <cstdarg>	   // va_list
+#include <cerrno>      // errno
 
 static auto error_own = false; // do we own the error file?
 static auto error_path = "error.log";
@@ -23,22 +24,40 @@ const char* get_error_path()
 	return error_path;
 }
 
-FILE* get_error_file()
+FILE* open_error_file()
 {
+	const auto path = get_error_path();
 	FILE* file = nullptr;
+#ifdef __STDC_LIB_EXT1__
+	auto err = errno_t{};
+	if (error_own) {
+		err = std::fopen_s(&file, path, "a");
+	} else {
+		err = std::fopen_s(&file, path, "w");
+		error_own = true;
+	}
+	if (err != 0) {
+		fprintf(stderr, "error while opening %s: %d\n", path, err);
+		file = nullptr;
+	}
+#else
 	if (error_own) {
 		file = std::fopen(get_error_path(), "a");
 	} else {
 		file = std::fopen(get_error_path(), "w");
 		error_own = true;
 	}
+	if (file == nullptr) {
+		fprintf(stderr, "error while opening %s: %d\n", path, errno);
+	}
+#endif
 	return file;
 }
 
 extern "C"
 void log_error(const char* function, const char* path, int line, const char* format, ...)
 {
-	auto file = get_error_file();
+	auto file = open_error_file();
 	const auto time = std::chrono::system_clock::now().time_since_epoch();
 	const auto sec = std::chrono::duration_cast<std::chrono::seconds>(time);
 	const auto usec = std::chrono::duration_cast<std::chrono::microseconds>(time-sec);

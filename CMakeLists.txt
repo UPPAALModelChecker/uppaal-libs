@@ -1,9 +1,8 @@
 cmake_minimum_required(VERSION 3.15)
 
-include(cmake/stdcpp.cmake)
-
 project(uppaal_libs CXX)
 
+include(cmake/stdcpp.cmake)
 include(cmake/sanitizers.cmake)
 
 option(UPPAALLIBS_WITH_TESTS "UPPAAL LIBS Unit Tests" ON)

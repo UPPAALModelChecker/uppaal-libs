@@ -29,9 +29,9 @@ TEST_CASE("load libtable")
 #else
 #error("Unknown platform")
 #endif
-		auto table_new_int = lib.lookup<fn_int_int_int_to_int>("table_new_int");
+		auto table_new_int [[maybe_unused]] = lib.lookup<fn_int_int_int_to_int>("table_new_int");
 		auto table_new_double = lib.lookup<fn_int_int_double_to_int>("table_new_double");
-		auto table_resize_int = lib.lookup<fn_int_int_int_int>("table_resize_int");
+		auto table_resize_int [[maybe_unused]] = lib.lookup<fn_int_int_int_int>("table_resize_int");
 		auto table_resize_double = lib.lookup<fn_int_int_int_double>("table_resize_double");
 		auto table_read_csv = lib.lookup<fn_str_int_to_int>("table_read_csv");
 		auto table_write_csv = lib.lookup<fn_int_str_to_int>("table_write_csv");
@@ -39,8 +39,8 @@ TEST_CASE("load libtable")
 		auto table_clear = lib.lookup<fn_int_to_int>("table_clear");
 		auto table_rows = lib.lookup<fn_int_to_int>("table_rows");
 		auto table_cols = lib.lookup<fn_int_to_int>("table_cols");
-		auto read_int = lib.lookup<fn_int_int_int_to_int>("read_int");
-		auto write_int = lib.lookup<fn_int_int_int_int>("write_int");
+		auto read_int [[maybe_unused]] = lib.lookup<fn_int_int_int_to_int>("read_int");
+		auto write_int [[maybe_unused]] = lib.lookup<fn_int_int_int_int>("write_int");
 		auto read_double = lib.lookup<fn_int_int_int_to_double>("read_double");
 		auto write_double = lib.lookup<fn_int_int_int_double>("write_double");
 		auto read_int_col = lib.lookup<fn_int_int_int_intp_int_int>("read_int_col");
