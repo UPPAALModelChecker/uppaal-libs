@@ -10,7 +10,7 @@ const auto libname = "libtable.so";
 #elif defined(__APPLE__)
 const auto libname = "libtable.dylib";
 #elif defined(__MINGW32__)
-const auto libname = "libtable.dll;
+const auto libname = "libtable.dll";
 #elif defined(_WIN32)
 const auto libname = "table.dll";
 #else
