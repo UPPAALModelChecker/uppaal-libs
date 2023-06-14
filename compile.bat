@@ -29,8 +29,8 @@ ctest --build-config %BUILD_TYPE% --output-on-failure
 if %ERRORLEVEL% NEQ 0 goto Failure
 cd ..
 echo SUCCESS!
-echo Binaries are in %cd%\%BUILD_DIR%\src\%BUILD_TYPE%
-start "" "%cd%\%BUILD_DIR%\src\%BUILD_TYPE%"
+echo Binaries are in %cd%\%BUILD_DIR%\src
+start "" "%cd%\%BUILD_DIR%\src"
 
 pause
 exit 0

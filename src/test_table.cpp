@@ -13,19 +13,20 @@ const auto table_path = std::filesystem::current_path() / "libtable.dylib";
 const auto table_path = std::filesystem::current_path() / "libtable.dll";
 #elif defined(_WIN32)
 const auto table_path = [] { 
-	// CMake on Windows puts binaries into CMAKE_CURRENT_BINARY_DIR/config subfolder (Debug/Release)
-	// CMake on Unix and VisualStudio put binaries into CMAKE_CURRENT_BINARY_DIR
-	char buffer[2048];
-	auto size = GetModuleFileNameA(NULL, buffer, 2048u); // path to current executable
-	buffer[size<2048 ? size : 2047] = '\0';
+	// CMake on Windows puts Release binaries into CMAKE_CURRENT_BINARY_DIR/Release
+	// otherwise binaries are in CMAKE_CURRENT_BINARY_DIR
+	auto buffer = std::string(1024, '\0');
+	auto size = GetModuleFileNameA(NULL, buffer.data(), static_cast<DWORD>(buffer.size())); // path to current executable
+	while (size >= buffer.size()) {
+		buffer.resize(buffer.size() * 2, '\0');
+		size = GetModuleFileNameA(NULL, buffer.data(), static_cast<DWORD>(buffer.size()));
+	}
+	buffer.resize(size); // truncate the path
 	return std::filesystem::path{buffer}.parent_path() / "table.dll";
 }();
 #else
 #error("Unknown platform")
 #endif
-
-
-constexpr auto eps = 0.00001;
 
 TEST_CASE("load libtable")
 {
@@ -40,10 +41,12 @@ TEST_CASE("load libtable")
 	using fn_int_int_int_double = int (*)(int, int, int, double);
 	using fn_int_int_int_intp_int_int = void (*)(int, int, int, int*, int, int);
 
+	auto approx = doctest::Approx{0}.epsilon(0.00001);
+
 	try {
 		auto lib_path_str = table_path.string();
 		std::cout << "Loading " << lib_path_str << std::endl;
-		auto lib = Library{lib_path_str.c_str()};
+		auto lib = Library{lib_path_str.c_str()}; // may throw upon errors
 		auto table_new_int [[maybe_unused]] = lib.lookup<fn_int_int_int_to_int>("table_new_int");
 		auto table_new_double = lib.lookup<fn_int_int_double_to_int>("table_new_double");
 		auto table_resize_int [[maybe_unused]] = lib.lookup<fn_int_int_int_int>("table_resize_int");
@@ -77,9 +80,9 @@ TEST_CASE("load libtable")
 		}
 		CHECK(6 == read_double(id, 1, 1));
 		const auto v1_2 = interpolate(id, 1.2, 0, 1);
-		CHECK(v1_2 == doctest::Approx{5.2}.epsilon(eps));
+		CHECK(v1_2 == approx(5.2));
 		const auto v0 = interpolate(id, 0.0, 0, 1);
-		CHECK(v0 == doctest::Approx{5.0}.epsilon(eps));
+		CHECK(v0 == approx(5.0));
 		const auto v5_5 = interpolate(id, 5.5, 0, 1);
 		CHECK(8.0 == v5_5);
 		// read in bulk:
