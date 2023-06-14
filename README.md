@@ -27,8 +27,8 @@ e.g.:
 ```shell
 sudo apt install g++-mingw-w64-x86-64-posix wine binfmt-support wine-binfmt
 ```
-`wine` may need to know where `libwinpthread-1.dll`, `libgcc_s_seh-1.dll`, `libstdc++-6.dll` and other system libraries are. 
-You can either copy them into the directory next to the binaries (very tedious) or add them to `wine` `PATH`. 
+`wine` may need to know where `libwinpthread-1.dll`, `libgcc_s_seh-1.dll`, `libstdc++-6.dll` and other system libraries are.
+You can either copy them into the directory next to the binaries (very tedious) or add them to `wine` `PATH`.
 Here are the instructions:
 - Print the locations of MinGW system libraries:
 ```shell
@@ -87,13 +87,13 @@ Build for `macOS` using `g++-12` from `brew` into [build-macos64-brew-gcc12-debu
 Look for `libtable.dylib` in [build-macos64-brew-gcc12-release/src](build-macos64-brew-gcc12-release/src).
 
 ### Windows
-Just launch `compile.bat` to compile and open the folders with binary files upon success.
+Just launch `compile.bat` to compile, which will open the folder with binary files upon success.
 
-Look for `table.dll` in [build-release/src/Release](build-release/src/Release).
+Look for `libtable.dll` and `libtable-dbg.dll` in the project folder.
 
 ## Usage
 
-* Put the library files (`libtable.so` on Linux, `libtable.dylib` on macOS, `libtable.dll` or `table.dll` on Windows) next to your models files.
+* Put the library files (`libtable.so` on Linux, `libtable.dylib` on macOS, `libtable.dll` on Windows) next to your models files.
 * Import the library into Uppaal model:
 ```c
 import "/absolute/path/to/LIBRARY-FILE.EXT" {

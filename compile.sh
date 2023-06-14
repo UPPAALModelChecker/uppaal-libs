@@ -2,15 +2,17 @@
 
 set -e
 
-case $(uname -s) in
-  Linux)
+HOST=$(uname -s)
+
+case $HOST in
+  Linux|MINGW64*)
     CORES=$(nproc)
     ;;
   Darwin)
     CORES=$(sysctl -n hw.ncpu)
     ;;
   *)
-    echo "Unknown hosting platform"
+    echo "Unknown hosting platform: $HOST"
     exit 1
 esac
 
@@ -23,8 +25,8 @@ if [ -z "$targets" ]; then
     echo -e "\t$t"
   done
   echo
-  case $(uname -s) in
-  Linux)
+  case $HOST in
+  Linux|MINGW64*)
     targets=""
     if [ -n "$(command -v c++)" ]; then
       targets="$targets linux64"
