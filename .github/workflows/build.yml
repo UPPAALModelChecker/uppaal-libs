@@ -35,6 +35,7 @@ jobs:
         run: find src -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' | xargs clang-format -n -Werror
 
   build:
+    needs: check_formatting
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
