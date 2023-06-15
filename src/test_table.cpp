@@ -1,3 +1,7 @@
+/**
+ * Unit tests for loading libtable library.
+ * Author: Marius Mikucionis <marius@cs.aau.dk>
+ */
 #include "library.hpp"
 
 #include <doctest/doctest.h>
