@@ -1,4 +1,7 @@
 @echo off
+
+erase /F /S /Q libtable.dll libtable-dbg.dll > NUL
+
 set BUILD_TYPE=Release
 set BUILD_DIR=build-release
 
@@ -11,9 +14,8 @@ cd %BUILD_DIR%
 ctest --build-config %BUILD_TYPE% --output-on-failure
 if %ERRORLEVEL% NEQ 0 goto Failure
 cd ..
-echo SUCCESS!
-echo Binaries are in %cd%\%BUILD_DIR%\src\%BUILD_TYPE%
-start "" "%cd%\%BUILD_DIR%\src\%BUILD_TYPE%"
+copy %cd%\%BUILD_DIR%\src\%BUILD_TYPE%\table.dll %cd%\libtable.dll
+echo SUCCESS building release into libtable.dll
 
 
 set BUILD_TYPE=Debug
@@ -28,9 +30,9 @@ cd %BUILD_DIR%
 ctest --build-config %BUILD_TYPE% --output-on-failure
 if %ERRORLEVEL% NEQ 0 goto Failure
 cd ..
-echo SUCCESS!
-echo Binaries are in %cd%\%BUILD_DIR%\src
-start "" "%cd%\%BUILD_DIR%\src"
+copy %cd%\%BUILD_DIR%\src\%BUILD_TYPE%\table.dll %cd%\libtable-dbg.dll
+echo SUCCESS building debug into libtable-dbg.dll
+start "" "%cd%"
 
 pause
 exit 0

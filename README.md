@@ -27,8 +27,8 @@ e.g.:
 ```shell
 sudo apt install g++-mingw-w64-x86-64-posix wine binfmt-support wine-binfmt
 ```
-`wine` may need to know where `libwinpthread-1.dll`, `libgcc_s_seh-1.dll`, `libstdc++-6.dll` and other system libraries are. 
-You can either copy them into the directory next to the binaries (very tedious) or add them to `wine` `PATH`. 
+`wine` may need to know where `libwinpthread-1.dll`, `libgcc_s_seh-1.dll`, `libstdc++-6.dll` and other system libraries are.
+You can either copy them into the directory next to the binaries (very tedious) or add them to `wine` `PATH`.
 Here are the instructions:
 - Print the locations of MinGW system libraries:
 ```shell
@@ -87,16 +87,18 @@ Build for `macOS` using `g++-12` from `brew` into [build-macos64-brew-gcc12-debu
 Look for `libtable.dylib` in [build-macos64-brew-gcc12-release/src](build-macos64-brew-gcc12-release/src).
 
 ### Windows
-Just launch `compile.bat` to compile and open the folders with binary files upon success.
+Just launch `compile.bat` to compile, which will open the folder with binary files upon success.
 
-Look for `table.dll` in [build-release/src/Release](build-release/src/Release).
+Look for `libtable.dll` and `libtable-dbg.dll` in the project folder.
 
 ## Usage
 
-* Put the library files (`libtable.so` on Linux, `libtable.dylib` on macOS, `libtable.dll` or `table.dll` on Windows) next to your models files.
+* Put the library files (`libtable.so` on Linux, `libtable.dylib` on macOS, `libtable.dll` on Windows) next to your models files.
 * Import the library into Uppaal model:
 ```c
 import "/absolute/path/to/LIBRARY-FILE.EXT" {
+    /** resets the error log path (default is errors.log in current directory) */
+    int set_error_path(const string& path);
     /** create a new table, fill it with integer value and return its id: */
     int table_new_int(int rows, int cols, int value);
     /** create a new table, fill it with double value and return its id: */
@@ -129,11 +131,24 @@ import "/absolute/path/to/LIBRARY-FILE.EXT" {
 ```
 * Call the library to load the CSV file into a table, read the size and entries:
 ```c
-const int id = table_read_csv("path/to/table.csv");
-const int rows = table_rows(id);
-const int cols = table_cols(id);
-int value_at_row0_col0 = read_int(id, 0, 0);
-int value_at_row1_col2 = read_int(id, 1, 2);
+const int PATH = set_error_path("path/to/errors.log"); // otherwise expect errors.log in current path
+const int TID = table_read_csv("path/to/table.csv");
+const int ROWS = table_rows(id);
+const int COLS = table_cols(id);
+int value_at_row0_col0 = read_int(TID, 0, 0);
+int value_at_row1_col2 = read_int(TID, 1, 2);
+
+typedef int[0,COLS-1] col_t;
+typedef int[0,ROWS-1] row_t;
+typedef int record_t[col_t];
+typedef record_t table_t[row_t];
+
+table_t table;
+void read_table() {
+    for (r:row_t)
+        for (c:col_t)
+            table[r][c] = read_int(TID, r, c);
+}
 ```
 * As the API implies, it is also possible to create, copy, resize, modify and write table data, but the modifications must be used with extreme care as they are **not side-effect-free**.
 

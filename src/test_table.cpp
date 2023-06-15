@@ -12,7 +12,7 @@ const auto table_path = std::filesystem::current_path() / "libtable.dylib";
 #elif defined(__MINGW32__)
 const auto table_path = std::filesystem::current_path() / "libtable.dll";
 #elif defined(_WIN32)
-const auto table_path = [] { 
+const auto table_path = [] {
 	// CMake on Windows puts Release binaries into CMAKE_CURRENT_BINARY_DIR/Release
 	// otherwise binaries are in CMAKE_CURRENT_BINARY_DIR
 	auto buffer = std::string(1024, '\0');
@@ -116,8 +116,11 @@ TEST_CASE("load libtable")
 		CHECK(table_rows(id3) == 3);
 		CHECK(table_cols(id3) == 4);
 		CHECK(read_double(id3, 2, 2) == 3.14);
-	} catch (std::runtime_error& err) {
+	} catch (std::exception& err) {
 		std::cerr << "Failed: " << err.what() << std::endl;
+		CHECK(false);
+	} catch (...) {
+		std::cerr << "Failed with unknown exception" << std::endl;
 		CHECK(false);
 	}
 }

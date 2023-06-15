@@ -80,7 +80,6 @@ public:
 	template <typename FnType>
 	FnType lookup(const char* fn_name)
 	{
-#pragma warning(suppress : 4191)
 		auto res = reinterpret_cast<FnType>(GetProcAddress(handle, fn_name));
 		if (res == nullptr)
 			throw std::runtime_error{"Failed symbol lookup with error "+std::to_string(GetLastError())};
