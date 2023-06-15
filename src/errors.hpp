@@ -11,12 +11,13 @@
 #ifndef NDEBUG
 #ifdef _WIN32
 #define log_err(format, ...) log_error(__FUNCTION__, __FILE__, __LINE__, format, __VA_ARGS__)
-#else // not _WIN32
-#define log_err(format, ...) log_error(__FUNCTION__, __FILE__, __LINE__, format __VA_OPT__(,) __VA_ARGS__)
-#endif // _WIN32
-#else // with NDEBUG
+#else  // not _WIN32
+#define log_err(format, ...) \
+	log_error(__FUNCTION__, __FILE__, __LINE__, format __VA_OPT__(, ) __VA_ARGS__)
+#endif	// _WIN32
+#else	// with NDEBUG
 #define log_err(format, ...)
-#endif // NDEBUG
+#endif	// NDEBUG
 
 /** Set the file path for errors, returns 0 always */
 C_PUBLIC int set_error_path(const char* err_path);

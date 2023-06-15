@@ -4,25 +4,38 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - include/**
-      - src/**
-      - cmake/**
+      - .clang-format
       - CMakeLists.txt
+      - cmake/**
+      - src/**
   pull_request:
     branches: [ "main" ]
     types: [synchronize, opened, reopened, ready_for_review]
     paths:
-      - include/**
-      - src/**
-      - cmake/**
+      - .clang-format
       - CMakeLists.txt
+      - cmake/**
+      - src/**
 
 concurrency:
   group: Build-${{ github.head_ref }}
   cancel-in-progress: true
 
 jobs:
+  check_formatting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install clang-format
+        run: sudo apt-get update && sudo apt-get install clang-format
+      - name: Checkout source
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Check Formatting
+        run: find src -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' | xargs clang-format -n -Werror
+
   build:
+    needs: check_formatting
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
