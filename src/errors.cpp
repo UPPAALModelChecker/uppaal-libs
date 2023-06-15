@@ -13,10 +13,11 @@
 static auto error_own = false; // do we own the error file?
 static auto error_path = std::string{"error.log"};
 
-C_PUBLIC void set_error_path(const char* path)
+C_PUBLIC int set_error_path(const char* path)
 {
 	error_path = path;
 	error_own = false;
+	return 0;
 }
 
 C_PUBLIC const char* get_error_path()

@@ -27,9 +27,6 @@ C_PUBLIC void read_int_row(int id, int row, int col, int* items, int offset, int
 using namespace std::string_literals;
 
 static std::vector<table_t> tables{};
-#ifdef ENABLE_CSV_CACHE
-static std::unordered_map<std::string, table_t> cache;
-#endif
 
 C_PUBLIC int table_new_int(int rows, int cols, int value)
 {
@@ -58,6 +55,7 @@ C_PUBLIC int table_new_double(int rows, int cols, double value)
 static table_t load(const std::string& path, int skip_lines)
 {
 #ifdef ENABLE_CSV_CACHE
+	static auto cache = std::unordered_map<std::string, table_t>{};
 	auto it = cache.find(path);
 	if (it == cache.end()) {
 		log_err("No table in cache, loading from scratch");
@@ -76,7 +74,7 @@ static table_t load(const std::string& path, int skip_lines)
 	auto is = std::ifstream{path};
 	is.peek();
 	if (!is || is.eof()) {
-		log_err("failed to read: %s", path.c_str());
+		log_err("failed to read \"%s\": ", path.c_str());
 	}
 	return table_read_csv(is, skip_lines);
 #endif
@@ -88,7 +86,7 @@ C_PUBLIC int table_read_csv(const char* csv_path, int skip_lines)
 	log_err("table_read_csv(%s, %d)", csv_path, skip_lines);
 	tables.push_back(load(csv_path, skip_lines)); // empty table in case of errors
 	auto res = static_cast<int>(tables.size())-1;
-	log_err("table_read_csv: %d (id)", res);
+	log_err("table_read_csv: id=%d", res);
 	return res;
 }
 

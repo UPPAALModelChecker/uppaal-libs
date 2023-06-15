@@ -18,7 +18,8 @@
 #define log_err(format, ...)
 #endif // NDEBUG
 
-C_PUBLIC void set_error_path(const char* err_path);
+/** Set the file path for errors, returns 0 always */
+C_PUBLIC int set_error_path(const char* err_path);
 C_PUBLIC const char* get_error_path();
 
 void log_error(const char* function, const char* path, int line, const char* format, ...);
