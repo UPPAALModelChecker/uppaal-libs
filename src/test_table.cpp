@@ -16,12 +16,13 @@ const auto table_path = [] {
 	// CMake on Windows puts Release binaries into CMAKE_CURRENT_BINARY_DIR/Release
 	// otherwise binaries are in CMAKE_CURRENT_BINARY_DIR
 	auto buffer = std::string(1024, '\0');
-	auto size = GetModuleFileNameA(NULL, buffer.data(), static_cast<DWORD>(buffer.size())); // path to current executable
+	auto size = GetModuleFileNameA(
+		NULL, buffer.data(), static_cast<DWORD>(buffer.size()));  // path to current executable
 	while (size >= buffer.size()) {
 		buffer.resize(buffer.size() * 2, '\0');
 		size = GetModuleFileNameA(NULL, buffer.data(), static_cast<DWORD>(buffer.size()));
 	}
-	buffer.resize(size); // truncate the path
+	buffer.resize(size);  // truncate the path
 	return std::filesystem::path{buffer}.parent_path() / "table.dll";
 }();
 #else
@@ -46,7 +47,7 @@ TEST_CASE("load libtable")
 	try {
 		auto lib_path_str = table_path.string();
 		std::cout << "Loading " << lib_path_str << std::endl;
-		auto lib = Library{lib_path_str.c_str()}; // may throw upon errors
+		auto lib = Library{lib_path_str.c_str()};  // may throw upon errors
 		auto table_new_int [[maybe_unused]] = lib.lookup<fn_int_int_int_to_int>("table_new_int");
 		auto table_new_double = lib.lookup<fn_int_int_double_to_int>("table_new_double");
 		auto table_resize_int [[maybe_unused]] = lib.lookup<fn_int_int_int_int>("table_resize_int");
@@ -69,7 +70,7 @@ TEST_CASE("load libtable")
 		const auto id = table_read_csv("table_input.csv", 0);
 		auto rows = table_rows(id);
 		auto cols = table_cols(id);
-		REQUIRE(rows != 0); // table should not be empty
+		REQUIRE(rows != 0);	 // table should not be empty
 		REQUIRE(cols != 0);
 
 		// read access:

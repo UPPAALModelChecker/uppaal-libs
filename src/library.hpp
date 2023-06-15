@@ -5,21 +5,20 @@
 #ifndef _LIBRARY_HPP_
 #define _LIBRARY_HPP_
 
-#include <string> // to_string
-#include <stdexcept> // runtime_error
+#include <string>	  // to_string
+#include <stdexcept>  // runtime_error
 
 #if defined(__linux__) || defined(__APPLE__)
-#include <dlfcn.h> // dlopen, dlsym, dlerror
+#include <dlfcn.h>	// dlopen, dlsym, dlerror
 
 /** Wrapper for opening Library files.
  * Methods may throw runtime_error upon errors. */
 class Library
 {
-	void* handle; // library handle
+	void* handle;  // library handle
 
 public:
-	Library(const char* filepath):
-		handle{dlopen(filepath, RTLD_LAZY | RTLD_LOCAL)}
+	Library(const char* filepath): handle{dlopen(filepath, RTLD_LAZY | RTLD_LOCAL)}
 	{
 		if (!handle)
 			throw std::runtime_error{dlerror()};
@@ -53,11 +52,10 @@ public:
 
 class Library
 {
-	HMODULE handle; // library handle
+	HMODULE handle;	 // library handle
 
 public:
-	Library(const char* filepath):
-		handle{LoadLibrary(TEXT(filepath))}
+	Library(const char* filepath): handle{LoadLibrary(TEXT(filepath))}
 	{
 		if (!handle) {
 			auto err_no = static_cast<int>(::GetLastError());
@@ -82,11 +80,11 @@ public:
 	{
 		auto res = reinterpret_cast<FnType>(GetProcAddress(handle, fn_name));
 		if (res == nullptr)
-			throw std::runtime_error{"Failed symbol lookup with error "+std::to_string(GetLastError())};
+			throw std::runtime_error{"Failed symbol lookup with error " +
+									 std::to_string(GetLastError())};
 		return res;
 	}
 };
-
 
 #else
 #error "unsupported platform"

@@ -2,8 +2,8 @@
 #include "errors.hpp"
 #include "dynlib.h"
 #include <fstream>
-#include <string> // to_string/MSVC
-#include <cmath> // nan
+#include <string>  // to_string/MSVC
+#include <cmath>   // nan
 
 C_PUBLIC int table_new_int(int rows, int cols, int value);
 C_PUBLIC int table_new_double(int rows, int cols, double value);
@@ -23,7 +23,6 @@ C_PUBLIC double interpolate(int id, double key, int key_col, int valu_col);
 C_PUBLIC void read_int_col(int id, int row, int col, int* items, int offset, int count);
 C_PUBLIC void read_int_row(int id, int row, int col, int* items, int offset, int count);
 
-
 using namespace std::string_literals;
 
 static std::vector<table_t> tables{};
@@ -35,7 +34,7 @@ C_PUBLIC int table_new_int(int rows, int cols, int value)
 	t.resize(static_cast<size_t>(rows));
 	for (auto& row : t)
 		row.resize(static_cast<size_t>(cols), value);
-	const auto res = static_cast<int>(tables.size())-1;
+	const auto res = static_cast<int>(tables.size()) - 1;
 	log_err("table_new: ", res);
 	return res;
 }
@@ -47,7 +46,7 @@ C_PUBLIC int table_new_double(int rows, int cols, double value)
 	t.resize(static_cast<size_t>(rows));
 	for (auto& row : t)
 		row.resize(static_cast<size_t>(cols), value);
-	const auto res = static_cast<int>(tables.size())-1;
+	const auto res = static_cast<int>(tables.size()) - 1;
 	log_err("table_new: ", res);
 	return res;
 }
@@ -84,8 +83,8 @@ static table_t load(const std::string& path, int skip_lines)
 C_PUBLIC int table_read_csv(const char* csv_path, int skip_lines)
 {
 	log_err("table_read_csv(%s, %d)", csv_path, skip_lines);
-	tables.push_back(load(csv_path, skip_lines)); // empty table in case of errors
-	auto res = static_cast<int>(tables.size())-1;
+	tables.push_back(load(csv_path, skip_lines));  // empty table in case of errors
+	auto res = static_cast<int>(tables.size()) - 1;
 	log_err("table_read_csv: id=%d", res);
 	return res;
 }
@@ -125,7 +124,7 @@ C_PUBLIC int table_copy(const int id)
 		return -1;
 	}
 	tables.push_back(tables[static_cast<size_t>(id)]);
-	auto res = static_cast<int>(tables.size())-1;
+	auto res = static_cast<int>(tables.size()) - 1;
 	log_err("table_copy: %d (id)", res);
 	return res;
 }
@@ -146,7 +145,6 @@ C_PUBLIC int table_clear(int id)
 	log_err("table_clear: %d (id)", id);
 	return id;
 }
-
 
 /** User function: get the number of rows in the table */
 C_PUBLIC int table_rows(const int id)
@@ -229,10 +227,7 @@ C_PUBLIC double read_double(int id, int row, int col)
 	return std::nan("");
 }
 
-C_PUBLIC int read_int(int id, int row, int col)
-{
-	return (int)read_double(id, row, col);
-}
+C_PUBLIC int read_int(int id, int row, int col) { return (int)read_double(id, row, col); }
 
 /** User function: resize the entire table to a given rectangular size. Return id on success */
 C_PUBLIC int table_resize_double(int id, int rows, int cols, double value)
@@ -247,7 +242,7 @@ C_PUBLIC int table_resize_double(int id, int rows, int cols, double value)
 		return -1;
 	}
 	table.resize(static_cast<size_t>(rows));
-	for (auto& row: table)
+	for (auto& row : table)
 		row.resize(static_cast<size_t>(cols), value);
 	return id;
 }
@@ -265,11 +260,10 @@ C_PUBLIC int table_resize_int(int id, int rows, int cols, int value)
 		return -1;
 	}
 	table.resize(static_cast<size_t>(rows));
-	for (auto& row: table)
+	for (auto& row : table)
 		row.resize(static_cast<size_t>(cols), value);
 	return id;
 }
-
 
 C_PUBLIC void write_double(int id, int row, int col, double value)
 {
@@ -280,10 +274,7 @@ C_PUBLIC void write_double(int id, int row, int col, double value)
 	}
 }
 
-C_PUBLIC void write_int(int id, int row, int col, int value)
-{
-	write_double(id, row, col, value);
-}
+C_PUBLIC void write_int(int id, int row, int col, int value) { write_double(id, row, col, value); }
 
 C_PUBLIC double interpolate(int id, double key, int key_col, int valu_col)
 {
@@ -306,7 +297,7 @@ C_PUBLIC void read_int_col(int id, int row, int col, int* items, int offset, int
 			throw std::runtime_error("negative row");
 		if (col < 0)
 			throw std::runtime_error("negative column");
-		if (row+count > static_cast<int>(table.size()))
+		if (row + count > static_cast<int>(table.size()))
 			throw std::runtime_error("row range is beyond table size");
 		if (col >= static_cast<int>(table[static_cast<size_t>(row)].size()))
 			throw std::runtime_error("column is beyond table size");
@@ -329,11 +320,11 @@ C_PUBLIC void read_int_row(int id, int row, int col, int* items, int offset, int
 			throw std::runtime_error("negative column");
 		if (row >= static_cast<int>(table.size()))
 			throw std::runtime_error("row is beyond table size");
-		if (col+count > static_cast<int>(table[static_cast<size_t>(row)].size()))
+		if (col + count > static_cast<int>(table[static_cast<size_t>(row)].size()))
 			throw std::runtime_error("column range is beyond table size");
 		auto rb = std::next(std::begin(table), row);
 		for (auto i = 0; i < count; ++i)
-			items[offset + i] = static_cast<int>((*rb)[static_cast<size_t>(col+i)]);
+			items[offset + i] = static_cast<int>((*rb)[static_cast<size_t>(col + i)]);
 	} catch (std::runtime_error& e [[maybe_unused]]) {
 		log_err("%s", e.what());
 	}
