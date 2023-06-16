@@ -40,8 +40,8 @@ jobs:
       - name: Collect Windows Artifacts
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
-          New-Item -Path "$env:TARGET" -ItemType Directory
-          copy ${{github.workspace}}/build-${{ matrix.build_type }}/src/${{ matrix.build_type }}/table.dll "$TARGET/libtable${SUFFIX}.dll"
+          New-Item -Path "$Env:TARGET" -ItemType Directory
+          copy ${{github.workspace}}/build-${{ matrix.build_type }}/src/${{ matrix.build_type }}/table.dll "$Env:TARGET/libtable${SUFFIX}.dll"
 
       - name: Collect macOS Artifacts
         if: ${{ matrix.os == 'macos-latest' }}
