@@ -1,0 +1,113 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: Release-${{ github.head_ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    strategy:
+      matrix:
+        os: [windows-latest, macos-latest, ubuntu-latest]
+        build_type: [Debug, Release]
+    runs-on: ${{ matrix.os }}
+    env:
+      TARGET: ${{ fromJson('{ "windows-latest":"windows-msvc","macos-latest":"macos","ubuntu-latest":"linux" }')[matrix.os] }}
+      SUFFIX: ${{ fromJson('{ "Debug":"-dbg","Release":"" }')[matrix.build_type] }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Configure
+        run: cmake -B ${{github.workspace}}/build-${{ matrix.build_type }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+
+      - name: Build
+        run: cmake --build ${{github.workspace}}/build-${{ matrix.build_type }} --config ${{ matrix.build_type }}
+
+      - name: Test
+        working-directory: ${{github.workspace}}/build-${{ matrix.build_type }}
+        run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
+
+      - name: Collect Windows Artifacts
+        if: ${{ matrix.os == 'windows-latest' }}
+        run: |
+          New-Item -Path "$Env:TARGET" -ItemType Directory
+          copy ${{github.workspace}}/build-${{ matrix.build_type }}/src/${{ matrix.build_type }}/table.dll "$Env:TARGET/libtable${SUFFIX}.dll"
+
+      - name: Collect macOS Artifacts
+        if: ${{ matrix.os == 'macos-latest' }}
+        run: |
+          mkdir "$TARGET"
+          cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.dylib "$TARGET/libtable${SUFFIX}.dylib"
+
+      - name: Collect Linux Artifacts
+        if: ${{ matrix.os == 'ubuntu-latest' }}
+        run: |
+          mkdir "$TARGET"
+          cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.so "$TARGET/libtable${SUFFIX}.so"
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.TARGET }}
+          path: ${{ env.TARGET }}
+
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-msvc
+          path: windows-msvc
+      - name: Package Windows Artifacts
+        working-directory: windows-msvc
+        run: ls -R .. && zip -r9 ../uppaal-libs-windows-msvc.zip *
+
+      - name: Download macOS Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: macos
+          path: macos
+      - name: Package macOS Artifacts
+        working-directory: macos
+        run: ls -R .. && zip -r9 ../uppaal-libs-macos.zip *
+
+      - name: Download Linux Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: linux
+          path: linux
+      - name: Package Linux Artifacts
+        working-directory: linux
+        run: ls -R .. && zip -r9 ../uppaal-libs-linux.zip *
+
+      - name: Create Release Entry
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+             --repo="$GITHUB_REPOSITORY" \
+             --title="$GITHUB_REF_NAME" \
+             --generate-notes \
+             --draft
+
+      - name: Upload ALL Assets
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release upload "$GITHUB_REF_NAME" \
+             uppaal-libs-windows-msvc.zip uppaal-libs-macos.zip uppaal-libs-linux.zip \
+             --repo="$GITHUB_REPOSITORY" \
+             --clobber
