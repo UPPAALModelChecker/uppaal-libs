@@ -1,4 +1,4 @@
-name: Create Release
+name: Release
 
 on:
   push:
@@ -70,25 +70,28 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: windows-msvc
+          path: windows-msvc
       - name: Package Windows Artifacts
         working-directory: windows-msvc
-        run: zip -r9 ../uppaal-libs-windows-msvc.zip *
+        run: ls -R .. && zip -r9 ../uppaal-libs-windows-msvc.zip *
 
       - name: Download macOS Artifacts
         uses: actions/download-artifact@v3
         with:
           name: macos
+          path: macos
       - name: Package macOS Artifacts
         working-directory: macos
-        run: zip -r9 ../uppaal-libs-macos.zip *
+        run: ls -R .. && zip -r9 ../uppaal-libs-macos.zip *
 
       - name: Download Linux Artifacts
         uses: actions/download-artifact@v3
         with:
           name: linux
+          path: linux
       - name: Package Linux Artifacts
         working-directory: linux
-        run: zip -r9 ../uppaal-libs-linux.zip *
+        run: ls -R .. && zip -r9 ../uppaal-libs-linux.zip *
 
       - name: Create Release Entry
         env:
