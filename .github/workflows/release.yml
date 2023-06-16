@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 concurrency:
   group: Release-${{ github.head_ref }}
@@ -41,7 +42,7 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
           New-Item -Path "$Env:TARGET" -ItemType Directory
-          copy ${{github.workspace}}/build-${{ matrix.build_type }}/src/${{ matrix.build_type }}/table.dll "$Env:TARGET/libtable${SUFFIX}.dll"
+          copy ${{github.workspace}}/build-${{ matrix.build_type }}/src/${{ matrix.build_type }}/table.dll "${Env:TARGET}/libtable${Env:SUFFIX}.dll"
 
       - name: Collect macOS Artifacts
         if: ${{ matrix.os == 'macos-latest' }}
@@ -62,7 +63,7 @@ jobs:
           path: ${{ env.TARGET }}
 
   release:
-    name: Create Release
+    name: Release
     needs: build
     runs-on: ubuntu-latest
     steps:
