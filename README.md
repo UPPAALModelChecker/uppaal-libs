@@ -7,6 +7,9 @@ Generic examples of dynamically loaded libraries for Uppaal:
 
 ## Requirements
 
+The library can be imported into Uppaal models starting from **Uppaal version 4.1.20** for Linux and **Uppaal Stratego 11** for Windows and macOS.
+Either download the library files from the [releases](https://github.com/UPPAALModelChecker/uppaal-libs/releases) or checkout the source and compile on your own.
+
 ### Linux
 Install:
 * `git` to checkout the repository and dependencies (even if you download the source yourself).
