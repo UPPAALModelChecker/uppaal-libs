@@ -5,22 +5,26 @@ on:
     tags:
       - 'v*'
 
+concurrency:
+  group: Release-${{ github.head_ref }}
+  cancel-in-progress: true
+
 jobs:
   create_entry:
-    name: Create Entry
+    name: Create Release Entry
     runs-on: ubuntu-latest
     steps:
       - name: Create Release Entry
-        id: create_release
-        uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: (generate an automatic change log here)
-          draft: true
-          prerelease: false
+          ref: ${{ github.event.push.ref }}
+        run: |
+          tag=${ref##*/}
+          gh release create "$tag" \
+             --repo="$GITHUB_REPOSITORY" \
+             --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
+             --generate-notes \
+             --draft
 
   build_and_upload:
     name: Build and Upload
@@ -71,13 +75,13 @@ jobs:
              cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.so ${{github.workspace}}/libtable${SUFFIX}.so
              zip -9 ${{github.workspace}}/uppaal-libs-${OS_NAME}${SUFFIX}.zip libtable${SUFFIX}.so
 
-      - name: Upload Release Asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
+      - name: Upload Release Assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{github.workspace}}/uppaal-libs-${{ env.OS_NAME }}${{ env.SUFFIX }}.zip
-          asset_name: uppaal-libs-${{ env.OS_NAME }}${{ env.SUFFIX }}.zip
-          asset_content_type: application/zip
+          ref: ${{ github.event.push.ref }}
+        run: |
+          tag=${ref##*/}
+          gh release upload "$tag" \
+             ${{github.workspace}}/uppaal-libs-${OS_NAME}${SUFFIX}.zip \
+             --repo="$GITHUB_REPOSITORY" \
+             --clobber
