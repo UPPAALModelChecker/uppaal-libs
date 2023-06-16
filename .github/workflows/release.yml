@@ -51,21 +51,21 @@ jobs:
         run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
 
       - name: Package Windows
-        if: ${{ matrix.os == windows-latest }}
+        if: ${{ matrix.os == 'windows-latest' }}
         working-directory:
         run: |
              cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/${{ matrix.build_type }}/table.dll ${{github.workspace}}/libtable${SUFFIX}.dll
              zip -9 ${{github.workspace}}/uppaal-libs-${OS_NAME}${SUFFIX}.zip libtable${SUFFIX}.dll
 
       - name: Package macOS
-        if: ${{ matrix.os == macos-latest }}
+        if: ${{ matrix.os == 'macos-latest' }}
         working-directory:
         run: |
              cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.dylib ${{github.workspace}}/libtable${SUFFIX}.dylib
              zip -9 ${{github.workspace}}/uppaal-libs-${OS_NAME}${SUFFIX}.zip libtable${SUFFIX}.dylib
 
       - name: Package Linux
-        if: ${{ matrix.os == ubuntu-latest }}
+        if: ${{ matrix.os == 'ubuntu-latest' }}
         working-directory:
         run: |
              cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.so ${{github.workspace}}/libtable${SUFFIX}.so
