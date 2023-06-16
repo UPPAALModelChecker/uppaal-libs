@@ -10,8 +10,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build_artifacts:
-    name: Build Artifacts
+  build:
+    name: Build
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
@@ -63,7 +63,7 @@ jobs:
 
   create_release:
     name: Create Release
-    needs: build_artifacts
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Download Windows Artifacts
@@ -72,7 +72,7 @@ jobs:
           name: windows-msvc
       - name: Package Windows Artifacts
         working-directory: windows-msvc
-        run: Compress-Archive -DestinationPath ../uppaal-libs-windows-msvc.zip -Path *
+        run: zip -r9 ../uppaal-libs-windows-msvc.zip *
 
       - name: Download macOS Artifacts
         uses: actions/download-artifact@v3
@@ -80,7 +80,7 @@ jobs:
           name: macos
       - name: Package macOS Artifacts
         working-directory: macos
-        run: zip -9 ../uppaal-libs-macos.zip -Path *
+        run: zip -r9 ../uppaal-libs-macos.zip *
 
       - name: Download Linux Artifacts
         uses: actions/download-artifact@v3
@@ -88,7 +88,7 @@ jobs:
           name: linux
       - name: Package Linux Artifacts
         working-directory: linux
-        run: zip -9 ../uppaal-libs-linux.zip -Path *
+        run: zip -r9 ../uppaal-libs-linux.zip *
 
       - name: Create Release Entry
         env:
