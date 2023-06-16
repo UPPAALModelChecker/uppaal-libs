@@ -136,8 +136,8 @@ import "/absolute/path/to/LIBRARY-FILE.EXT" {
 ```c
 const int PATH = set_error_path("path/to/errors.log"); // otherwise expect errors.log in current path
 const int TID = table_read_csv("path/to/table.csv");
-const int ROWS = table_rows(id);
-const int COLS = table_cols(id);
+const int ROWS = table_rows(TID);
+const int COLS = table_cols(TID);
 int value_at_row0_col0 = read_int(TID, 0, 0);
 int value_at_row1_col2 = read_int(TID, 1, 2);
 
