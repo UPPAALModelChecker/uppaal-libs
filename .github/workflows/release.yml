@@ -10,30 +10,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  create_entry:
-    name: Create Release Entry
-    runs-on: ubuntu-latest
-    steps:
-      - name: Create Release Entry
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          gh release create "$GITHUB_REF_NAME" \
-             --repo="$GITHUB_REPOSITORY" \
-             --title="${GITHUB_REPOSITORY#*/} ${tag#v}" \
-             --generate-notes \
-             --draft
-
-  build_and_upload:
-    name: Build and Upload
-    needs: create_entry
+  build_artifacts:
+    name: Build Artifacts
     strategy:
       matrix:
         os: [windows-latest, macos-latest, ubuntu-latest]
         build_type: [Debug, Release]
     runs-on: ${{ matrix.os }}
     env:
-      OS_NAME: ${{ fromJson('{ "windows-latest":"windows","macos-latest":"macos","ubuntu-latest":"linux" }')[matrix.os] }}
+      TARGET: ${{ fromJson('{ "windows-latest":"windows-msvc","macos-latest":"macos","ubuntu-latest":"linux" }')[matrix.os] }}
       SUFFIX: ${{ fromJson('{ "Debug":"-dbg","Release":"" }')[matrix.build_type] }}
 
     steps:
@@ -42,7 +27,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Configure CMake
+      - name: Configure
         run: cmake -B ${{github.workspace}}/build-${{ matrix.build_type }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
       - name: Build
@@ -52,32 +37,71 @@ jobs:
         working-directory: ${{github.workspace}}/build-${{ matrix.build_type }}
         run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
 
-      - name: Package Windows
+      - name: Create Artifacts Folder
+        run: mkdir "$TARGET"
+
+      - name: Collect Windows Artifacts
         if: ${{ matrix.os == 'windows-latest' }}
-        working-directory:
-        run: |
-             cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/${{ matrix.build_type }}/table.dll ${{github.workspace}}/libtable${SUFFIX}.dll
-             zip -9 ${{github.workspace}}/uppaal-libs-${OS_NAME}${SUFFIX}.zip libtable${SUFFIX}.dll
+        run: copy ${{github.workspace}}/build-${{ matrix.build_type }}/src/${{ matrix.build_type }}/table.dll "$TARGET/libtable${SUFFIX}.dll"
 
-      - name: Package macOS
+      - name: Collect macOS Artifacts
         if: ${{ matrix.os == 'macos-latest' }}
-        working-directory:
-        run: |
-             cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.dylib ${{github.workspace}}/libtable${SUFFIX}.dylib
-             zip -9 ${{github.workspace}}/uppaal-libs-${OS_NAME}${SUFFIX}.zip libtable${SUFFIX}.dylib
+        run: cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.dylib "$TARGET/libtable${SUFFIX}.dylib"
 
-      - name: Package Linux
+      - name: Collect Linux Artifacts
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        working-directory:
-        run: |
-             cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.so ${{github.workspace}}/libtable${SUFFIX}.so
-             zip -9 ${{github.workspace}}/uppaal-libs-${OS_NAME}${SUFFIX}.zip libtable${SUFFIX}.so
+        run: cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.so "$TARGET/libtable${SUFFIX}.so"
 
-      - name: Upload Release Assets
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ env.TARGET }}
+          path: ${{ env.TARGET }}
+
+  create_release:
+    name: Create Release
+    needs: build_artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Windows Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-msvc
+      - name: Package Windows Artifacts
+        working-directory: windows-msvc
+        run: Compress-Archive -DestinationPath ../uppaal-libs-windows-msvc.zip -Path *
+
+      - name: Download macOS Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: macos
+      - name: Package macOS Artifacts
+        working-directory: macos
+        run: zip -9 ../uppaal-libs-macos.zip -Path *
+
+      - name: Download Linux Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: linux
+      - name: Package Linux Artifacts
+        working-directory: linux
+        run: zip -9 ../uppaal-libs-linux.zip -Path *
+
+      - name: Create Release Entry
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+             --repo="$GITHUB_REPOSITORY" \
+             --title="$GITHUB_REF_NAME" \
+             --generate-notes \
+             --draft
+
+      - name: Upload ALL Assets
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release upload "$GITHUB_REF_NAME" \
-             ${{github.workspace}}/uppaal-libs-${OS_NAME}${SUFFIX}.zip \
+             uppaal-libs-windows-msvc.zip uppaal-libs-macos.zip uppaal-libs-linux.zip \
              --repo="$GITHUB_REPOSITORY" \
              --clobber
