@@ -37,20 +37,23 @@ jobs:
         working-directory: ${{github.workspace}}/build-${{ matrix.build_type }}
         run: ctest --build-config ${{ matrix.build_type }} --output-on-failure
 
-      - name: Create Artifacts Folder
-        run: mkdir "$TARGET"
-
       - name: Collect Windows Artifacts
         if: ${{ matrix.os == 'windows-latest' }}
-        run: copy ${{github.workspace}}/build-${{ matrix.build_type }}/src/${{ matrix.build_type }}/table.dll "$TARGET/libtable${SUFFIX}.dll"
+        run: |
+          New-Item -Path "$env:TARGET" -ItemType Directory
+          copy ${{github.workspace}}/build-${{ matrix.build_type }}/src/${{ matrix.build_type }}/table.dll "$TARGET/libtable${SUFFIX}.dll"
 
       - name: Collect macOS Artifacts
         if: ${{ matrix.os == 'macos-latest' }}
-        run: cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.dylib "$TARGET/libtable${SUFFIX}.dylib"
+        run: |
+          mkdir "$TARGET"
+          cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.dylib "$TARGET/libtable${SUFFIX}.dylib"
 
       - name: Collect Linux Artifacts
         if: ${{ matrix.os == 'ubuntu-latest' }}
-        run: cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.so "$TARGET/libtable${SUFFIX}.so"
+        run: |
+          mkdir "$TARGET"
+          cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.so "$TARGET/libtable${SUFFIX}.so"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
