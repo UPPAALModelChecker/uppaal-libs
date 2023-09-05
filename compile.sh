@@ -157,7 +157,7 @@ for target in $targets ; do
     exit 1
   esac
   export CMAKE_BUILD_TYPE=Debug
-  BUILD_DIR=build-$target-${CMAKE_BUILD_TYPE,,}
+  BUILD_DIR=build-$target-$CMAKE_BUILD_TYPE
   echo "Configuring debug build for $target"
   echo "  CMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE"
   cmake -S . -B "$BUILD_DIR" $SANITIZE
@@ -171,7 +171,7 @@ for target in $targets ; do
   fi
 
   export CMAKE_BUILD_TYPE=Release
-  BUILD_DIR=build-$target-${CMAKE_BUILD_TYPE,,}
+  BUILD_DIR=build-$target-$CMAKE_BUILD_TYPE
   echo "Configuring optimized release build for $target"
   cmake -S . -B "$BUILD_DIR"
   echo "Building optimized release configuration for $target"
