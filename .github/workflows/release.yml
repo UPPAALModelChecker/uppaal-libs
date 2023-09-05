@@ -21,6 +21,8 @@ jobs:
     env:
       TARGET: ${{ fromJson('{ "windows-latest":"windows-msvc","macos-latest":"macos","ubuntu-latest":"linux" }')[matrix.os] }}
       SUFFIX: ${{ fromJson('{ "Debug":"-dbg","Release":"" }')[matrix.build_type] }}
+      BUILD_DIR: ${{github.workspace}}/build-${{ matrix.build_type }}
+      CMAKE_BUILD_TYPE: ${{ matrix.build_type }}
 
     steps:
       - name: Checkout
@@ -29,10 +31,10 @@ jobs:
           fetch-depth: 0
 
       - name: Configure
-        run: cmake -B ${{github.workspace}}/build-${{ matrix.build_type }} -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        run: cmake -B "${{github.workspace}}/build-${{ matrix.build_type }}"
 
       - name: Build
-        run: cmake --build ${{github.workspace}}/build-${{ matrix.build_type }} --config ${{ matrix.build_type }}
+        run: cmake --build "${{github.workspace}}/build-${{ matrix.build_type }}" --config ${{ matrix.build_type }}
 
       - name: Test
         working-directory: ${{github.workspace}}/build-${{ matrix.build_type }}
@@ -42,19 +44,19 @@ jobs:
         if: ${{ matrix.os == 'windows-latest' }}
         run: |
           New-Item -Path "$Env:TARGET" -ItemType Directory
-          copy ${{github.workspace}}/build-${{ matrix.build_type }}/src/${{ matrix.build_type }}/table.dll "${Env:TARGET}/libtable${Env:SUFFIX}.dll"
+          copy ${Env:BUILD_DIR}/src/${Env:CMAKE_BUILD_TYPE}/table.dll "${Env:TARGET}/libtable${Env:SUFFIX}.dll"
 
       - name: Collect macOS Artifacts
         if: ${{ matrix.os == 'macos-latest' }}
         run: |
           mkdir "$TARGET"
-          cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.dylib "$TARGET/libtable${SUFFIX}.dylib"
+          cp "$BUILD_DIR/src/libtable.dylib" "$TARGET/libtable${SUFFIX}.dylib"
 
       - name: Collect Linux Artifacts
         if: ${{ matrix.os == 'ubuntu-latest' }}
         run: |
           mkdir "$TARGET"
-          cp ${{github.workspace}}/build-${{ matrix.build_type }}/src/libtable.so "$TARGET/libtable${SUFFIX}.so"
+          cp "$BUILD_DIR/src/libtable.so" "$TARGET/libtable${SUFFIX}.so"
 
       - name: Upload Artifacts
         uses: actions/upload-artifact@v3
