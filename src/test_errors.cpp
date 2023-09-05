@@ -5,7 +5,6 @@
 
 #include <string>
 #include <fstream>
-#include <iostream>
 
 TEST_CASE("Error message")
 {
@@ -30,5 +29,5 @@ TEST_CASE("Error message")
 	const auto test_errors_pos = content.find("test_errors.cpp", at_pos + 4);
 	REQUIRE(test_errors_pos != std::string_view::npos);
 	const auto location = content.substr(test_errors_pos);
-	CHECK(location == "test_errors.cpp:13\n");
+	CHECK(location == "test_errors.cpp:12\n");
 }
