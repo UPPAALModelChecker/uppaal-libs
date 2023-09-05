@@ -109,6 +109,7 @@ fi
 
 for target in $targets ; do
   unset CMAKE_TOOLCHAIN_FILE
+  unset SANITIZE
   if [ ! -r $PWD/toolchain/${target}.cmake ]; then
     echo "The toolchain file does not exist: $PWD/toolchain/${target}.cmake"
     exit 1
@@ -118,15 +119,27 @@ for target in $targets ; do
   case $target in
   linux*)
     extension=so
-    SANITIZE="-DUBSAN=ON -DASAN=ON"
+    SANITIZE="-DSSP=ON -DUBSAN=ON -DASAN=ON"
+    ;;
+  macos64-brew-gcc10)
+    extension=dylib
+    SANITIZE="-DSSP=ON"
+    ;;
+  macos64-brew-gcc11)
+    extension=dylib
+    SANITIZE="-DSSP=ON"
+    ;;
+  macos64-brew-gcc12)
+    extension=dylib
+    SANITIZE="-DSSP=ON"
     ;;
   macos*)
     extension=dylib
-    SANITIZE="-DUBSAN=ON -DASAN=ON"
+    SANITIZE="-DSSP=ON -DUBSAN=ON -DASAN=ON"
     ;;
   i686*mingw32)
     extension=dll
-    SANITIZE=""
+    SANITIZE="-DSSP=ON"
     libgcc_path=$($target-g++ --print-file-name=libgcc_s_dw2-1.dll)
     libgcc_path=$(realpath "$libgcc_path")
     libgcc_path=$(dirname "$libgcc_path")
@@ -137,7 +150,7 @@ for target in $targets ; do
     ;;
   x86_64*mingw32)
     extension=dll
-    SANITIZE=""
+    SANITIZE="-DSSP=ON"
     ;;
   *)
     echo "Unknown target platform: $target"
