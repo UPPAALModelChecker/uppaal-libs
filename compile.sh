@@ -108,24 +108,38 @@ if [ -z "$CTEST_TEST_LOAD" ]; then
 fi
 
 for target in $targets ; do
+  unset CMAKE_TOOLCHAIN_FILE
+  unset SANITIZE
   if [ ! -r $PWD/toolchain/${target}.cmake ]; then
     echo "The toolchain file does not exist: $PWD/toolchain/${target}.cmake"
     exit 1
   else
-    TOOLCHAIN="-DCMAKE_TOOLCHAIN_FILE=$PWD/toolchain/${target}.cmake"
+    export CMAKE_TOOLCHAIN_FILE="$PWD/toolchain/${target}.cmake"
   fi
   case $target in
   linux*)
     extension=so
-    SANITIZE="-DUBSAN=ON -DASAN=ON"
+    SANITIZE="-DSSP=ON -DUBSAN=ON -DASAN=ON"
+    ;;
+  macos64-brew-gcc10)
+    extension=dylib
+    SANITIZE="-DSSP=ON"
+    ;;
+  macos64-brew-gcc11)
+    extension=dylib
+    SANITIZE="-DSSP=ON"
+    ;;
+  macos64-brew-gcc12)
+    extension=dylib
+    SANITIZE="-DSSP=ON"
     ;;
   macos*)
     extension=dylib
-    SANITIZE="-DUBSAN=ON -DASAN=ON"
+    SANITIZE="-DSSP=ON -DUBSAN=ON -DASAN=ON"
     ;;
   i686*mingw32)
     extension=dll
-    SANITIZE=""
+    SANITIZE="-DSSP=ON"
     libgcc_path=$($target-g++ --print-file-name=libgcc_s_dw2-1.dll)
     libgcc_path=$(realpath "$libgcc_path")
     libgcc_path=$(dirname "$libgcc_path")
@@ -136,31 +150,34 @@ for target in $targets ; do
     ;;
   x86_64*mingw32)
     extension=dll
-    SANITIZE=""
+    SANITIZE="-DSSP=ON"
     ;;
   *)
     echo "Unknown target platform: $target"
     exit 1
   esac
-  BUILD_DIR=build-$target-debug
+  export CMAKE_BUILD_TYPE=Debug
+  BUILD_DIR=build-$target-${CMAKE_BUILD_TYPE,,}
   echo "Configuring debug build for $target"
-  cmake $TOOLCHAIN -DCMAKE_BUILD_TYPE=Debug $SANITIZE -S . -B "$BUILD_DIR"
+  echo "  CMAKE_TOOLCHAIN_FILE=$CMAKE_TOOLCHAIN_FILE"
+  cmake -S . -B "$BUILD_DIR" $SANITIZE
   echo "Building debug configuration for $target"
-  cmake --build "$BUILD_DIR"
+  cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
   echo "Testing debug configuration for $target"
-  (cd "$BUILD_DIR" ; ctest --output-on-failure)
+  (cd "$BUILD_DIR" ; ctest -C $CMAKE_BUILD_TYPE --output-on-failure)
   ## Create a link to it:
   if [ ! -e libtable-dbg.${extension} ]; then
 	  ln -s "$BUILD_DIR"/src/libtable.${extension} libtable-dbg.${extension}
   fi
 
-  BUILD_DIR=build-$target-release
+  export CMAKE_BUILD_TYPE=Release
+  BUILD_DIR=build-$target-${CMAKE_BUILD_TYPE,,}
   echo "Configuring optimized release build for $target"
-  cmake $TOOLCHAIN -DCMAKE_BUILD_TYPE=Release -S . -B "$BUILD_DIR"
+  cmake -S . -B "$BUILD_DIR"
   echo "Building optimized release configuration for $target"
-  cmake --build "$BUILD_DIR"
+  cmake --build "$BUILD_DIR" --config $CMAKE_BUILD_TYPE
   echo "Testing optimized release configuration for $target"
-  (cd "$BUILD_DIR" ; ctest --output-on-failure)
+  (cd "$BUILD_DIR" ; ctest -C $CMAKE_BUILD_TYPE --output-on-failure)
   ## Create a link to it:
   if [ ! -e libtable.${extension} ]; then
 	  ln -s "$BUILD_DIR"/src/libtable.${extension} libtable.${extension}
