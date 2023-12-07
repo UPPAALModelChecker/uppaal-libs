@@ -23,8 +23,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  check_formatting:
-    runs-on: ubuntu-latest
+  formatting:
+    runs-on: [ self-hosted, Linux, X64 ]
     steps:
       - name: Install clang-format
         run: sudo apt-get update && sudo apt-get -qqy install clang-format
@@ -36,10 +36,10 @@ jobs:
         run: find src -iregex '.*\.\(c\|h\|cpp\|hpp\|cc\|hh\|cxx\|hxx\)$' | xargs clang-format -n -Werror
 
   build:
-    needs: check_formatting
+    needs: formatting
     strategy:
       matrix:
-        os: [windows-latest, macos-latest, ubuntu-latest]
+        os: [ windows-latest, [ self-hosted, macOS, X64 ], [ self-hosted, Linux, X64 ] ]
         build_type: [Debug, Release]
     runs-on: ${{ matrix.os }}
     env:
