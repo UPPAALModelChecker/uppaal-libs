@@ -1,73 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
 <nta>
-	<declaration>const int N = 3;
+	<declaration>typedef int[0,INT32_MAX] uint32_t;
+const uint32_t N = 3;
 
-import "/tmp/uppaal-libs/libarray.so" {
-    int get_size(); /// size of stored data array
-    void set_size(int size); /// resize the storage
-    void load_data(double&amp; values[N], int size); /// Reads the stored data into a given array
-    void store_data(const double&amp; values[N], int size); /// Stores the data
+import "/tmp/uppaal-libs/libarray.so" 
+{
+    uint32_t get_size(); /// size of stored data array
+    void set_size(uint32_t size); /// resize the storage
+    void load_data(double&amp; values[N], uint32_t size); /// Reads the stored data into a given array
+    void store_data(const double&amp; values[N], uint32_t size); /// Stores the data
+
+    uint32_t get_size2(); /// size of stored data2 array
+    void set_size2(uint32_t size); /// resize the data2 array
+    void load_data2(double&amp; values[N], uint32_t size); /// Reads the stored data2 into a given array
+    void store_data2(const double&amp; values[N], uint32_t size); /// Stores into the data2
+
+    void load_both(double&amp; values[N], uint32_t size, double&amp; values2[N], uint32_t size2); /// Reads both data and data2
+    void store_both(const double&amp; values[N], uint32_t size, const double&amp; values2[N], uint32_t size2); /// Store into both data and data2
 };
 
-int init_size = get_size();
+uint32_t init_size = get_size();
+uint32_t init_size2 = get_size2();
 
-int size;
+uint32_t size;
+uint32_t size2;
 const double in[N] = { 2.1718, 3.1415, 42.0 };
+const double in2[N] = { 42.0, 2.1718, 3.1415 };
 double out[N];
+double out2[N];
 </declaration>
 	<template>
 		<name x="5" y="5">P</name>
 		<declaration>clock x;</declaration>
-		<location id="id0" x="136" y="136">
+		<location id="id0" x="408" y="170">
 		</location>
-		<location id="id1" x="374" y="0">
-			<name x="364" y="-34">Done</name>
+		<location id="id1" x="136" y="170">
 		</location>
-		<location id="id2" x="-68" y="136">
+		<location id="id2" x="646" y="0">
+			<name x="636" y="-34">Done</name>
 		</location>
-		<location id="id3" x="136" y="0">
+		<location id="id3" x="-68" y="170">
+		</location>
+		<location id="id4" x="136" y="0">
 			<urgent/>
 		</location>
-		<location id="id4" x="-272" y="0">
+		<location id="id5" x="-272" y="0">
 			<urgent/>
 		</location>
-		<location id="id5" x="-68" y="0">
+		<location id="id6" x="-68" y="0">
 			<urgent/>
 		</location>
-		<init ref="id4"/>
-		<transition id="id6">
-			<source ref="id3"/>
-			<target ref="id1"/>
-			<label kind="guard" x="161" y="-17">size == N &amp;&amp;
-forall(i:int[0,N-1])
-   in[i] == out[i]</label>
-		</transition>
-		<transition id="id7">
-			<source ref="id3"/>
-			<target ref="id0"/>
-			<label kind="guard" x="144" y="59">size != N ||
-exists(i:int[0,N-1])
-   in[i] != out[i]</label>
-		</transition>
+		<location id="id7" x="408" y="0">
+			<urgent/>
+		</location>
+		<init ref="id5"/>
 		<transition id="id8">
-			<source ref="id5"/>
-			<target ref="id2"/>
-			<label kind="guard" x="-59" y="59">size != N</label>
+			<source ref="id7"/>
+			<target ref="id0"/>
+			<label kind="guard" x="425" y="51">size != N ||
+(exists(i:int[0,N-1])
+   in[i] != out2[i]) ||
+size2 != N ||
+(exists(i:int[0,N-1])
+   in2[i] != out[i])</label>
 		</transition>
 		<transition id="id9">
-			<source ref="id5"/>
-			<target ref="id3"/>
-			<label kind="guard" x="-42" y="-25">size == N</label>
-			<label kind="assignment" x="-42" y="0">load_data(out, N),
-size = get_size()</label>
+			<source ref="id7"/>
+			<target ref="id2"/>
+			<label kind="guard" x="433" y="-127">size == N &amp;&amp;
+(forall(i:int[0,N-1])
+   in[i] == out2[i]) &amp;&amp;
+size2 == N &amp;&amp;
+(forall(i:int[0,N-1])
+   in2[i] == out[i])</label>
 		</transition>
 		<transition id="id10">
 			<source ref="id4"/>
-			<target ref="id5"/>
-			<label kind="guard" x="-255" y="-25">init_size == 0</label>
+			<target ref="id7"/>
+			<label kind="guard" x="161" y="-119">size == N &amp;&amp;
+(forall(i:int[0,N-1])
+   in[i] == out[i]) &amp;&amp;
+size2 == N &amp;&amp;
+(forall(i:int[0,N-1])
+   in2[i] == out2[i])</label>
+			<label kind="assignment" x="161" y="0">store_both(in2, N, in, N),
+load_both(out, N, out2, N)</label>
+		</transition>
+		<transition id="id11">
+			<source ref="id4"/>
+			<target ref="id1"/>
+			<label kind="guard" x="153" y="51">size != N ||
+(exists(i:int[0,N-1])
+   in[i] != out[i]) ||
+size2 != N ||
+(exists(i:int[0,N-1])
+   in2[i] != out2[i])</label>
+		</transition>
+		<transition id="id12">
+			<source ref="id6"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-59" y="93">size != N ||
+size2 != N</label>
+		</transition>
+		<transition id="id13">
+			<source ref="id6"/>
+			<target ref="id4"/>
+			<label kind="guard" x="-42" y="-42">size == N &amp;&amp;
+size2 == N</label>
+			<label kind="assignment" x="-42" y="0">load_data(out, N),
+size = get_size(),
+load_data2(out2, N),
+size2 = get_size2()</label>
+		</transition>
+		<transition id="id14">
+			<source ref="id5"/>
+			<target ref="id6"/>
+			<label kind="guard" x="-255" y="-42">init_size == 0 &amp;&amp;
+init_size == 0</label>
 			<label kind="assignment" x="-254" y="0">store_data(in, N),
-size = get_size()</label>
+size = get_size(),
+store_data2(in2, N),
+size2 = get_size2()</label>
 		</transition>
 	</template>
 	<system>system P;</system>
