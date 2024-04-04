@@ -5,20 +5,20 @@
     int table_new_int(int rows, int cols, int value); // creates a new table and returns its id
     int table_new_double(int rows, int cols, double value); // creates a new table and returns its id
     int table_read_csv(const string&amp; filename, int skip_lines); // reads table from csv file and returns id
-	int table_write_csv(int id, const string&amp; filename); // writes table to csv file and returns number of rows
+    int table_write_csv(int id, const string&amp; filename); // writes table to csv file and returns number of rows
     int table_copy(int id); // creates a new table copy and returns its id
     int table_clear(int id); // releases resources associated with the table and returns id
     int table_resize_int(int id, int rows, int cols, int value); // resizes the table with given dimensions
     int table_rows(int id); // number of rows in the table
     int table_cols(int id); // number of columns in the table
-	int read_int(int id, int row, int col); // read integer at row:col
-	double read_double(int id, int row, int col); // read double at row:col
+    int read_int(int id, int row, int col); // read integer at row:col
+    double read_double(int id, int row, int col); // read double at row:col
     // interpolated look up for key in key_column (sorted in ascending order) and returns value_column
     double interpolate(int id, double key, int key_column, int value_column);
-	void write_int(int id, int row, int col, int value); // write integer at row:col
-	void write_double(int id, int row, int col, double value); // write double at row:col
-	void read_int_col(int id, int row, int col, int&amp; items[4], int offset, int count); // read column
-	void read_int_row(int id, int row, int col, int&amp; items[3], int offset, int count); // read row
+    void write_int(int id, int row, int col, int value); // write integer at row:col
+    void write_double(int id, int row, int col, double value); // write double at row:col
+    void read_int_col(int id, int row, int col, int&amp; items[4], int offset, int count); // read column
+    void read_int_row(int id, int row, int col, int&amp; items[4], int offset, int count); // read row
 };
 
 const int id = table_read_csv("/tmp/uppaal-libs/table_input.csv", 0);
@@ -42,23 +42,20 @@ int table[rows][cols];
 void read_all()
 {
   if (rows&gt;0 &amp;&amp; cols&gt;0) {
-     for (i : int[0,rows-1])
-        for (j : int[0,cols-1])
-           table[i][j] = read_int(_id, i, j);
+     for (r : int[0,rows-1])
+        for (c : int[0,cols-1])
+           table[r][c] = read_int(_id, r, c);
   }
 }
 
 void read_by_row() 
 {
-// crash
-//  for (r : int[0,rows-1])
-/*
-    const int r = 0;
-    //row_t row;
-    int row[3];
+  for (r : int[0,rows-1]) {
+    int row[4];
     read_int_row(id, r, 0, row, 0, cols);
-    table[r] = row;
-*/
+    for (c : int[0,cols-1])
+      table[r][c] = row[c];
+  }
 }
 </declaration>
 	<template>
