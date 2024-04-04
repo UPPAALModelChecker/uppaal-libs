@@ -39,7 +39,7 @@ TEST_CASE("Array storage")
 	using load_both_fn = void (*)(double[], uint32_t, double[], uint32_t);
 	using store_both_fn = void (*)(const double[], uint32_t, const double[], uint32_t);
 	try {
-		auto lib = Library(array_path);
+		auto lib = Library{array_path.string()};
 		auto get_size = lib.lookup<get_size_fn>("get_size");
 		auto set_size = lib.lookup<set_size_fn>("set_size");
 		auto load_data = lib.lookup<load_data_fn>("load_data");

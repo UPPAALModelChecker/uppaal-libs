@@ -55,7 +55,7 @@ class Library
 	HMODULE handle;	 // library handle
 
 public:
-	Library(const char* filepath): handle{LoadLibrary(TEXT(filepath))}
+	Library(const std::string& filepath): handle{LoadLibrary(TEXT(filepath.c_str()))}
 	{
 		if (!handle) {
 			auto err_no = static_cast<int>(::GetLastError());
