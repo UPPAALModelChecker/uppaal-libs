@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE nta PUBLIC '-//Uppaal Team//DTD Flat System 1.6//EN' 'http://www.it.uu.se/research/group/darts/uppaal/flat-1_6.dtd'>
+<nta>
+	<declaration>const int N = 3;
+
+import "/tmp/uppaal-libs/libarray.so" {
+    int get_size(); /// size of stored data array
+    void set_size(int size); /// resize the storage
+    void load_data(double&amp; values[N], int size); /// Reads the stored data into a given array
+    void store_data(const double&amp; values[N], int size); /// Stores the data
+};
+
+int init_size = get_size();
+
+int size;
+const double in[N] = { 2.1718, 3.1415, 42.0 };
+double out[N];
+</declaration>
+	<template>
+		<name x="5" y="5">P</name>
+		<declaration>clock x;</declaration>
+		<location id="id0" x="136" y="136">
+		</location>
+		<location id="id1" x="374" y="0">
+			<name x="364" y="-34">Done</name>
+		</location>
+		<location id="id2" x="-68" y="136">
+		</location>
+		<location id="id3" x="136" y="0">
+			<urgent/>
+		</location>
+		<location id="id4" x="-272" y="0">
+			<urgent/>
+		</location>
+		<location id="id5" x="-68" y="0">
+			<urgent/>
+		</location>
+		<init ref="id4"/>
+		<transition id="id6">
+			<source ref="id3"/>
+			<target ref="id1"/>
+			<label kind="guard" x="161" y="-17">size == N &amp;&amp;
+forall(i:int[0,N-1])
+   in[i] == out[i]</label>
+		</transition>
+		<transition id="id7">
+			<source ref="id3"/>
+			<target ref="id0"/>
+			<label kind="guard" x="144" y="59">size != N ||
+exists(i:int[0,N-1])
+   in[i] != out[i]</label>
+		</transition>
+		<transition id="id8">
+			<source ref="id5"/>
+			<target ref="id2"/>
+			<label kind="guard" x="-59" y="59">size != N</label>
+		</transition>
+		<transition id="id9">
+			<source ref="id5"/>
+			<target ref="id3"/>
+			<label kind="guard" x="-42" y="-25">size == N</label>
+			<label kind="assignment" x="-42" y="0">load_data(out, N),
+size = get_size()</label>
+		</transition>
+		<transition id="id10">
+			<source ref="id4"/>
+			<target ref="id5"/>
+			<label kind="guard" x="-255" y="-25">init_size == 0</label>
+			<label kind="assignment" x="-254" y="0">store_data(in, N),
+size = get_size()</label>
+		</transition>
+	</template>
+	<system>system P;</system>
+	<queries>
+		<query>
+			<formula>simulate [&lt;=1; 100] { size } : 100 : P.Done</formula>
+			<comment/>
+		</query>
+	</queries>
+</nta>

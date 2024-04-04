@@ -9,7 +9,15 @@ add_library(table SHARED table.cpp)
 target_link_libraries(table PRIVATE errors)
 add_dependencies(table data)
 
+add_library(array SHARED array.cpp)
+target_link_libraries(array PRIVATE errors)
+
 if (UPPAALLIBS_WITH_TESTS)
+    add_executable(array_test array_test.cpp)
+    target_link_libraries(array_test PRIVATE doctest::doctest_with_main)
+    add_dependencies(array_test array)
+    add_test(NAME array_test COMMAND array_test)
+
     add_executable(table_test table_test.cpp)
     target_link_libraries(table_test PRIVATE doctest::doctest_with_main)
     add_dependencies(table_test table)

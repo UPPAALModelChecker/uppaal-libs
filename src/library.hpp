@@ -18,7 +18,7 @@ class Library
 	void* handle;  // library handle
 
 public:
-	Library(const char* filepath): handle{dlopen(filepath, RTLD_LAZY | RTLD_LOCAL)}
+	Library(const std::string& filepath): handle{dlopen(filepath.c_str(), RTLD_LAZY | RTLD_LOCAL)}
 	{
 		if (!handle)
 			throw std::runtime_error{dlerror()};
