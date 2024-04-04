@@ -32,10 +32,10 @@ const auto array_path = [] {
 
 TEST_CASE("Array storage")
 {
-	using get_size_fn = int(*)();
-	using set_size_fn = void(*)(int);
-	using load_data_fn = void(*)(double[], int);
-	using store_data_fn = void(*)(const double[], int);
+	using get_size_fn = int (*)();
+	using set_size_fn = void (*)(int);
+	using load_data_fn = void (*)(double[], int);
+	using store_data_fn = void (*)(const double[], int);
 	try {
 		auto lib = Library(array_path);
 		auto get_size = lib.lookup<get_size_fn>("get_size");
