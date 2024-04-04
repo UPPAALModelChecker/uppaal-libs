@@ -50,9 +50,8 @@ TEST_CASE("load libtable")
 	auto approx = doctest::Approx{0}.epsilon(0.00001);
 
 	try {
-		auto lib_path_str = table_path.string();
-		std::cout << "Loading " << lib_path_str << std::endl;
-		auto lib = Library{lib_path_str.c_str()};  // may throw upon errors
+		std::cout << "Loading " << table_path << std::endl;
+		auto lib = Library{table_path.string()};  // may throw upon errors
 		auto table_new_int [[maybe_unused]] = lib.lookup<fn_int_int_int_to_int>("table_new_int");
 		auto table_new_double = lib.lookup<fn_int_int_double_to_int>("table_new_double");
 		auto table_resize_int [[maybe_unused]] = lib.lookup<fn_int_int_int_int>("table_resize_int");

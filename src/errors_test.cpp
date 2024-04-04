@@ -26,8 +26,8 @@ TEST_CASE("Error message")
 	CHECK(message == "Testing: errors 42 3.141000");
 	const auto at_pos = content.find(" at ", in_pos + 1);
 	REQUIRE(at_pos != std::string_view::npos);
-	const auto test_errors_pos = content.find("test_errors.cpp", at_pos + 4);
+	const auto test_errors_pos = content.find("errors_test.cpp", at_pos + 4);
 	REQUIRE(test_errors_pos != std::string_view::npos);
 	const auto location = content.substr(test_errors_pos);
-	CHECK(location == "test_errors.cpp:12\n");
+	CHECK(location == "errors_test.cpp:12\n");
 }

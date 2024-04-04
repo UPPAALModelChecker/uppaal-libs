@@ -26,7 +26,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
@@ -59,7 +59,7 @@ jobs:
           cp "$BUILD_DIR/src/libtable.so" "$TARGET/libtable${SUFFIX}.so"
 
       - name: Upload Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.TARGET }}
           path: ${{ env.TARGET }}
@@ -70,7 +70,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Download Windows Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: windows-msvc
           path: windows-msvc
@@ -79,7 +79,7 @@ jobs:
         run: ls -R .. && zip -r9 ../uppaal-libs-windows-msvc.zip *
 
       - name: Download macOS Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: macos
           path: macos
@@ -88,7 +88,7 @@ jobs:
         run: ls -R .. && zip -r9 ../uppaal-libs-macos.zip *
 
       - name: Download Linux Artifacts
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: linux
           path: linux

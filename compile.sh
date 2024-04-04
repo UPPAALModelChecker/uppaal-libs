@@ -151,6 +151,13 @@ for target in $targets ; do
   x86_64*mingw32)
     extension=dll
     SANITIZE="-DSSP=ON"
+    libgcc_path=$($target-g++ --print-file-name=libgcc_s_seh-1.dll)
+    libgcc_path=$(realpath "$libgcc_path")
+    libgcc_path=$(dirname "$libgcc_path")
+    libwinpthread_path=$($target-g++ --print-file-name=libwinpthread-1.dll)
+    libwinpthread_path=$(realpath "$libwinpthread_path")
+    libwinpthread_path=$(dirname "$libwinpthread_path")
+    export WINEPATH="$libwinpthread_path;$libgcc_path"
     ;;
   *)
     echo "Unknown target platform: $target"

@@ -18,7 +18,7 @@ class Library
 	void* handle;  // library handle
 
 public:
-	Library(const char* filepath): handle{dlopen(filepath, RTLD_LAZY | RTLD_LOCAL)}
+	Library(const std::string& filepath): handle{dlopen(filepath.c_str(), RTLD_LAZY | RTLD_LOCAL)}
 	{
 		if (!handle)
 			throw std::runtime_error{dlerror()};
@@ -55,7 +55,7 @@ class Library
 	HMODULE handle;	 // library handle
 
 public:
-	Library(const char* filepath): handle{LoadLibrary(TEXT(filepath))}
+	Library(const std::string& filepath): handle{LoadLibrary(TEXT(filepath.c_str()))}
 	{
 		if (!handle) {
 			auto err_no = static_cast<int>(::GetLastError());
