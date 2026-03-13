@@ -2,8 +2,8 @@
  * CSV table representation and its input and output.
  * Author: Marius Mikucionis <marius@cs.aau.dk>
  */
-#ifndef _CSVTABLE_HPP_
-#define _CSVTABLE_HPP_
+#ifndef INCLUDE_TABLE_HPP
+#define INCLUDE_TABLE_HPP
 
 #include <iostream>
 #include <vector>
@@ -120,4 +120,4 @@ std::ostream& dictionary_write_csv(std::ostream& os, const Dictionary& dictionar
 	return os;
 }
 
-#endif /* _CSVTABLE_HPP_ */
+#endif /* INCLUDE_TABLE_HPP */

@@ -2,7 +2,7 @@
  * Implements libtable functions.
  * Author: Marius Mikucionis <marius@cs.aau.dk>
  */
-#include "csvtable.hpp"
+#include "table.hpp"
 #include "logging.h"
 #include "dynlib.h"
 #include <fstream>

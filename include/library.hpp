@@ -2,8 +2,8 @@
  * C++ wrapper for opening dynamically linked libraries
  * Author: Marius Mikucionis <marius@cs.aau.dk>
  */
-#ifndef _LIBRARY_HPP_
-#define _LIBRARY_HPP_
+#ifndef INCLUDE_LIBRARY_HPP
+#define INCLUDE_LIBRARY_HPP
 
 #include <string>	  // to_string
 #include <stdexcept>  // runtime_error
@@ -87,4 +87,4 @@ private:
 #error "unsupported platform"
 #endif
 
-#endif /* _LIBRARY_HPP_ */
+#endif /* INCLUDE_LIBRARY_HPP */
