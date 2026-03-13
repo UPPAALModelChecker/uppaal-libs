@@ -1,6 +1,8 @@
 #ifndef UPPAAL_LIBS_DYNLIB_H
 #define UPPAAL_LIBS_DYNLIB_H
 
+/// Macros for exporting library symbols
+
 #if defined(_WIN32)
 #define C_PUBLIC extern "C" __declspec(dllexport)
 #elif defined(__linux__)

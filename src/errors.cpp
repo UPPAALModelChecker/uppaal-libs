@@ -10,17 +10,26 @@
 #include <cstdarg>	// va_list
 #include <cerrno>	// errno
 
-static auto error_own = false;	// do we own the error file?
-static auto error_path = std::string{"error.log"};
+static bool& error_own()
+{
+	static auto own = false;	// do we own the error file?
+	return own;
+}
+
+static std::string& error_path()
+{
+	static auto path = std::string{"error.log"};
+	return path;
+}
 
 C_PUBLIC int set_error_path(const char* path)
 {
-	error_path = path;
-	error_own = false;
+	error_path() = path;
+	error_own() = false;
 	return 0;
 }
 
-C_PUBLIC const char* get_error_path() { return error_path.c_str(); }
+C_PUBLIC const char* get_error_path() { return error_path().c_str(); }
 
 FILE* open_error_file()
 {
@@ -39,11 +48,11 @@ FILE* open_error_file()
 		file = nullptr;
 	}
 #else
-	if (error_own) {
+	if (error_own()) {
 		file = std::fopen(get_error_path(), "a");
 	} else {
 		file = std::fopen(get_error_path(), "w");
-		error_own = true;
+		error_own() = true;
 	}
 	if (file == nullptr) {
 		fprintf(stderr, "error while opening %s: %d\n", path, errno);
