@@ -15,12 +15,15 @@ TEST_SUITE_BEGIN("libtable");
 
 #if defined(__linux__)
 const auto libtable_path = std::filesystem::current_path() / ".." / "src" / "libtable.so";
+const auto csv_path = std::filesystem::current_path() / ".." / ".." / "examples" / "table_input.csv";
 #elif defined(__APPLE__)
 const auto libtable_path = std::filesystem::current_path() / ".." / "src" / "libtable.dylib";
+const auto csv_path = std::filesystem::current_path() / ".." / ".." / "examples" / "table_input.csv";
 #elif defined(__MINGW32__)
 const auto libtable_path = std::filesystem::current_path() / ".." / "src" / "libtable.dll";
+const auto csv_path = std::filesystem::current_path() / ".." / ".." / "examples" / "table_input.csv";
 #elif defined(_WIN32)
-const auto table_path = [] {
+const auto libtable_path = [] {
 	// CMake on Windows puts Release binaries into CMAKE_CURRENT_BINARY_DIR/Release
 	// otherwise binaries are in CMAKE_CURRENT_BINARY_DIR
 	auto buffer = std::string(1024, '\0');
@@ -31,17 +34,17 @@ const auto table_path = [] {
 		size = GetModuleFileNameA(NULL, buffer.data(), static_cast<DWORD>(buffer.size()));
 	}
 	buffer.resize(size);  // truncate the path
-	return std::filesystem::path{buffer}.parent_path() / "table.dll";
+	return std::filesystem::path{buffer}.parent_path() / ".." / "src" / "table.dll";
 }();
+const auto csv_path =
+	std::filesystem::current_path() / ".." / ".." / ".." / ".." / "examples" / "table_input.csv";
 #else
 #error ("Unknown platform")
 #endif
 
-const auto csv_path =
-	std::filesystem::current_path() / ".." / ".." / "examples" / "table_input.csv";
-
 TEST_CASE("load libtable")
 {
+	using std::filesystem::exists; // MSVC fails to do ADL
 	REQUIRE_MESSAGE(exists(libtable_path), ("Failed to find " + libtable_path.string()));
 	REQUIRE_MESSAGE(exists(csv_path), ("Failed to find " + csv_path.string()));
 
