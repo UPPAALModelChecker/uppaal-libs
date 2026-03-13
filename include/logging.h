@@ -1,10 +1,10 @@
 /**
- * Error reporting
+ * Error logging
  * Author: Marius Mikucionis <marius@cs.aau.dk>
  */
 
-#ifndef _ERRORS_HPP_
-#define _ERRORS_HPP_
+#ifndef INCLUDE_LOGGING_H
+#define INCLUDE_LOGGING_H
 
 #include "dynlib.h"
 
@@ -19,10 +19,11 @@
 #define log_err(format, ...)
 #endif	// NDEBUG
 
-/** Set the file path for errors, returns 0 always */
+/// Set the file path for errors, returns 0 always
 C_PUBLIC int set_error_path(const char* err_path);
+/// Returns the path to the log file, "error.log" by default
 C_PUBLIC const char* get_error_path();
 
 void log_error(const char* function, const char* path, int line, const char* format, ...);
 
-#endif /* _ERRORS_HPP_ */
+#endif // INCLUDE_LOGGING_H

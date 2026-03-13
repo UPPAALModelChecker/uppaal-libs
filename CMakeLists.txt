@@ -5,11 +5,13 @@ project(uppaal_libs)
 include(cmake/stdcpp.cmake)
 include(cmake/sanitizers.cmake)
 
-option(UPPAALLIBS_WITH_TESTS "UPPAAL LIBS Unit Tests" ON)
+option(UPPAALLIBS_WITH_TESTS "UPPAAL LIBS Unit Tests" ${PROJECT_IS_TOP_LEVEL})
+
+include_directories(include)
+add_subdirectory(src)
 
 if (UPPAALLIBS_WITH_TESTS)
     include(cmake/doctest.cmake)
     enable_testing()
+    add_subdirectory(tests)
 endif (UPPAALLIBS_WITH_TESTS)
-
-add_subdirectory(src)

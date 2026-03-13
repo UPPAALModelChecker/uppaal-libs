@@ -4,18 +4,21 @@
  */
 #include "library.hpp"
 
+#include <cmath>
 #include <doctest/doctest.h>
 
 #include <vector>
 #include <filesystem>
 #include <iostream>
 
+TEST_SUITE_BEGIN("libtable");
+
 #if defined(__linux__)
-const auto table_path = std::filesystem::current_path() / "libtable.so";
+const auto libtable_path = std::filesystem::current_path() /".."/"src"/ "libtable.so";
 #elif defined(__APPLE__)
-const auto table_path = std::filesystem::current_path() / "libtable.dylib";
+const auto libtable_path = std::filesystem::current_path() /".."/"src"/ "libtable.dylib";
 #elif defined(__MINGW32__)
-const auto table_path = std::filesystem::current_path() / "libtable.dll";
+const auto libtable_path = std::filesystem::current_path() /".."/"src"/ "libtable.dll";
 #elif defined(_WIN32)
 const auto table_path = [] {
 	// CMake on Windows puts Release binaries into CMAKE_CURRENT_BINARY_DIR/Release
@@ -34,8 +37,13 @@ const auto table_path = [] {
 #error("Unknown platform")
 #endif
 
+const auto csv_path = std::filesystem::current_path() / ".." / ".." / "examples" / "table_input.csv";
+
 TEST_CASE("load libtable")
 {
+	REQUIRE_MESSAGE(exists(libtable_path), ("Failed to find "+libtable_path.string()));
+	REQUIRE_MESSAGE(exists(csv_path), ("Failed to find "+csv_path.string()));
+
 	using fn_str_int_to_int = int (*)(const char*, int);
 	using fn_int_str_to_int = int (*)(int, const char*);
 	using fn_int_to_int = int (*)(int);
@@ -45,12 +53,12 @@ TEST_CASE("load libtable")
 	using fn_int_double_int_int_to_double = double (*)(int, double, int, int);
 	using fn_int_int_int_int = int (*)(int, int, int, int);
 	using fn_int_int_int_double = int (*)(int, int, int, double);
-	using fn_int_int_int_intp_int_int = void (*)(int, int, int, int*, int, int);
+	using fn_int_int_int_intp_int_int = int (*)(int, int, int, int*, int, int);
 
 	auto approx = doctest::Approx{0}.epsilon(0.00001);
 
 	try {
-		auto lib_path_str = table_path.string();
+		auto lib_path_str = libtable_path.string();
 		std::cout << "Loading " << lib_path_str << std::endl;
 		auto lib = Library{lib_path_str.c_str()};  // may throw upon errors
 		auto table_new_int [[maybe_unused]] = lib.lookup<fn_int_int_int_to_int>("table_new_int");
@@ -72,19 +80,37 @@ TEST_CASE("load libtable")
 		auto interpolate = lib.lookup<fn_int_double_int_int_to_double>("interpolate");
 
 		// read from file:
-		const auto id = table_read_csv("table_input.csv", 0);
-		auto rows = table_rows(id);
-		auto cols = table_cols(id);
-		REQUIRE(rows != 0);	 // table should not be empty
-		REQUIRE(cols != 0);
+		const auto id = table_read_csv(csv_path.c_str(), 0);
+		REQUIRE(id >= 0); // success with loading table
+		const auto rows = table_rows(id);
+		REQUIRE(rows >= 0);	 // table should be non-empty
+		CHECK(table_rows(id+1) == -1); // non-existing table
+		const auto cols = table_cols(id);
+		REQUIRE(cols >= 0); // should be some columns
+		CHECK(table_cols(id+1) == -1); // non-existing table
 
 		// read access:
-		for (int i = 0; i < rows; ++i) {
-			for (int j = 0; j < cols; ++j)
-				std::cout << read_double(id, i, j) << " ";
+		for (int row = 0; row < rows; ++row) {
+			for (int col = 0; col < cols; ++col)
+				std::cout << read_double(id, row, col) << " ";
 			std::cout << '\n';
 		}
 		CHECK(6 == read_double(id, 1, 1));
+		// bad arguments:
+		CHECK(std::isnan(read_double(-1, 1, 1))); // negative table id
+		CHECK(std::isnan(read_double(id+1, 1, 1))); // non-existing table
+		CHECK(std::isnan(read_double(id, -1, 1))); // negative row
+		CHECK(std::isnan(read_double(id, rows, 1))); // row overflow
+		CHECK(std::isnan(read_double(id, 1, -1))); // negative column
+		CHECK(std::isnan(read_double(id, 1, cols))); // column overflow
+		constexpr auto bad_int = std::numeric_limits<int>::lowest();
+		CHECK(read_int(-1, 1, 1) == bad_int); // negative table id
+		CHECK(read_int(id+1, 1, 1) == bad_int); // non-existing table
+		CHECK(read_int(id, -1, 1) == bad_int); // negative row
+		CHECK(read_int(id, rows, 1) == bad_int); // row overflow
+		CHECK(read_int(id, 1, -1) == bad_int); // negative column
+		CHECK(read_int(id, 1, cols) == bad_int); // column overflow
+
 		const auto v1_2 = interpolate(id, 1.2, 0, 1);
 		CHECK(v1_2 == approx(5.2));
 		const auto v0 = interpolate(id, 0.0, 0, 1);
@@ -93,7 +119,7 @@ TEST_CASE("load libtable")
 		CHECK(8.0 == v5_5);
 		// read in bulk:
 		auto column1 = std::vector<int>(static_cast<size_t>(rows), 0);
-		read_int_col(id, 0, 1, column1.data(), 0, rows);
+		REQUIRE(read_int_col(id, 0, 1, column1.data(), 0, rows) == 0);
 		CHECK(column1[0] == 5);
 		CHECK(column1[1] == 6);
 		CHECK(column1[2] == 7);
@@ -122,11 +148,11 @@ TEST_CASE("load libtable")
 		CHECK(table_rows(id3) == 3);
 		CHECK(table_cols(id3) == 4);
 		CHECK(read_double(id3, 2, 2) == 3.14);
-	} catch (std::exception& err) {
-		std::cerr << "Failed: " << err.what() << std::endl;
-		CHECK(false);
+	} catch (const std::exception& err) {
+		FAIL(err.what());
 	} catch (...) {
-		std::cerr << "Failed with unknown exception" << std::endl;
-		CHECK(false);
+		FAIL("Failed with unknown exception");
 	}
 }
+
+TEST_SUITE_END();
