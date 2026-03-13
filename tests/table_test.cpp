@@ -80,7 +80,7 @@ TEST_CASE("load libtable")
 		auto interpolate = lib.lookup<fn_int_double_int_int_to_double>("interpolate");
 
 		// read from file:
-		const auto id = table_read_csv(csv_path.c_str(), 0);
+		const auto id = table_read_csv(csv_path.string().c_str(), 0);
 		REQUIRE(id >= 0); // success with loading table
 		const auto rows = table_rows(id);
 		REQUIRE(rows >= 0);	 // table should be non-empty

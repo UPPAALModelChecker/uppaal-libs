@@ -349,7 +349,7 @@ C_PUBLIC int read_int_row(int id, int row, int col, int* items, int offset, int 
 			throw std::overflow_error{std::format("col+count {} is beyond table size", col+count)};
 		auto rb = std::next(std::begin(table), row);
 		for (auto i = size_t{0}; i < static_cast<size_t>(count); ++i)
-			items[offset + i] = static_cast<int>((*rb)[col + i]);
+			items[static_cast<size_t>(offset) + i] = static_cast<int>((*rb)[static_cast<size_t>(col) + i]);
 		return 0;
 	} catch (const std::exception& e [[maybe_unused]]) {
 		log_err("%s", e.what());
