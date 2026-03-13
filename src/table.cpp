@@ -244,9 +244,13 @@ C_PUBLIC double read_double(int id, int row, int col)
 	return std::nan("");
 }
 
+constexpr auto BAD_INT = std::numeric_limits<int>::lowest();
+
 C_PUBLIC int read_int(int id, int row, int col)
 {
 	const auto res = read_double(id, row, col);
+	if (std::isnan(res))
+		return BAD_INT;
 	return static_cast<int>(res);
 }
 
