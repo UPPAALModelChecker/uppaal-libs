@@ -15,7 +15,7 @@ TEST_CASE("Error message")
 	REQUIRE(error_path != nullptr);
 	auto is = std::ifstream{error_path};
 	REQUIRE(static_cast<bool>(is));
-	using isbit =std::istreambuf_iterator<char>;
+	using isbit = std::istreambuf_iterator<char>;
 	const auto buffer = std::string{isbit{is}, isbit{}};
 	const auto content = std::string_view{buffer};
 	REQUIRE(static_cast<bool>(is));

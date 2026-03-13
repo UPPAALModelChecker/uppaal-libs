@@ -40,8 +40,9 @@ struct Library
 			return res;
 		throw std::runtime_error{dlerror()};
 	}
+
 private:
-	void* handle{};  ///< library handle
+	void* handle{};	 ///< library handle
 };
 
 #elif defined(_WIN32) || defined(__MINGW32__)
@@ -77,8 +78,9 @@ struct Library
 			return res;
 		throw std::runtime_error{"Failed symbol lookup: " + std::to_string(GetLastError())};
 	}
+
 private:
-	HMODULE handle{};	 ///< library handle
+	HMODULE handle{};  ///< library handle
 };
 
 #else

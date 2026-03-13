@@ -63,8 +63,7 @@ inline void skip_comments(std::istream& is)
 	return dictionary;
 }
 
-[[nodiscard]] Elem interpolate(const Table& table, const Elem key, int key_column,
-								 int value_column)
+[[nodiscard]] Elem interpolate(const Table& table, const Elem key, int key_column, int value_column)
 {
 	using namespace std::string_literals;
 	if (key_column < 0)

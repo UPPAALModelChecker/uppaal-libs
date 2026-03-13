@@ -26,4 +26,4 @@ C_PUBLIC const char* get_error_path();
 
 void log_error(const char* function, const char* path, int line, const char* format, ...);
 
-#endif // INCLUDE_LOGGING_H
+#endif	// INCLUDE_LOGGING_H

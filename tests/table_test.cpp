@@ -14,11 +14,11 @@
 TEST_SUITE_BEGIN("libtable");
 
 #if defined(__linux__)
-const auto libtable_path = std::filesystem::current_path() /".."/"src"/ "libtable.so";
+const auto libtable_path = std::filesystem::current_path() / ".." / "src" / "libtable.so";
 #elif defined(__APPLE__)
-const auto libtable_path = std::filesystem::current_path() /".."/"src"/ "libtable.dylib";
+const auto libtable_path = std::filesystem::current_path() / ".." / "src" / "libtable.dylib";
 #elif defined(__MINGW32__)
-const auto libtable_path = std::filesystem::current_path() /".."/"src"/ "libtable.dll";
+const auto libtable_path = std::filesystem::current_path() / ".." / "src" / "libtable.dll";
 #elif defined(_WIN32)
 const auto table_path = [] {
 	// CMake on Windows puts Release binaries into CMAKE_CURRENT_BINARY_DIR/Release
@@ -34,15 +34,16 @@ const auto table_path = [] {
 	return std::filesystem::path{buffer}.parent_path() / "table.dll";
 }();
 #else
-#error("Unknown platform")
+#error ("Unknown platform")
 #endif
 
-const auto csv_path = std::filesystem::current_path() / ".." / ".." / "examples" / "table_input.csv";
+const auto csv_path =
+	std::filesystem::current_path() / ".." / ".." / "examples" / "table_input.csv";
 
 TEST_CASE("load libtable")
 {
-	REQUIRE_MESSAGE(exists(libtable_path), ("Failed to find "+libtable_path.string()));
-	REQUIRE_MESSAGE(exists(csv_path), ("Failed to find "+csv_path.string()));
+	REQUIRE_MESSAGE(exists(libtable_path), ("Failed to find " + libtable_path.string()));
+	REQUIRE_MESSAGE(exists(csv_path), ("Failed to find " + csv_path.string()));
 
 	using fn_str_int_to_int = int (*)(const char*, int);
 	using fn_int_str_to_int = int (*)(int, const char*);
@@ -81,13 +82,13 @@ TEST_CASE("load libtable")
 
 		// read from file:
 		const auto id = table_read_csv(csv_path.string().c_str(), 0);
-		REQUIRE(id >= 0); // success with loading table
+		REQUIRE(id >= 0);  // success with loading table
 		const auto rows = table_rows(id);
-		REQUIRE(rows >= 0);	 // table should be non-empty
-		CHECK(table_rows(id+1) == -1); // non-existing table
+		REQUIRE(rows >= 0);				  // table should be non-empty
+		CHECK(table_rows(id + 1) == -1);  // non-existing table
 		const auto cols = table_cols(id);
-		REQUIRE(cols >= 0); // should be some columns
-		CHECK(table_cols(id+1) == -1); // non-existing table
+		REQUIRE(cols >= 0);				  // should be some columns
+		CHECK(table_cols(id + 1) == -1);  // non-existing table
 
 		// read access:
 		for (int row = 0; row < rows; ++row) {
@@ -97,19 +98,19 @@ TEST_CASE("load libtable")
 		}
 		CHECK(6 == read_double(id, 1, 1));
 		// bad arguments:
-		CHECK(std::isnan(read_double(-1, 1, 1))); // negative table id
-		CHECK(std::isnan(read_double(id+1, 1, 1))); // non-existing table
-		CHECK(std::isnan(read_double(id, -1, 1))); // negative row
-		CHECK(std::isnan(read_double(id, rows, 1))); // row overflow
-		CHECK(std::isnan(read_double(id, 1, -1))); // negative column
-		CHECK(std::isnan(read_double(id, 1, cols))); // column overflow
+		CHECK(std::isnan(read_double(-1, 1, 1)));	   // negative table id
+		CHECK(std::isnan(read_double(id + 1, 1, 1)));  // non-existing table
+		CHECK(std::isnan(read_double(id, -1, 1)));	   // negative row
+		CHECK(std::isnan(read_double(id, rows, 1)));   // row overflow
+		CHECK(std::isnan(read_double(id, 1, -1)));	   // negative column
+		CHECK(std::isnan(read_double(id, 1, cols)));   // column overflow
 		constexpr auto bad_int = std::numeric_limits<int>::lowest();
-		CHECK(read_int(-1, 1, 1) == bad_int); // negative table id
-		CHECK(read_int(id+1, 1, 1) == bad_int); // non-existing table
-		CHECK(read_int(id, -1, 1) == bad_int); // negative row
-		CHECK(read_int(id, rows, 1) == bad_int); // row overflow
-		CHECK(read_int(id, 1, -1) == bad_int); // negative column
-		CHECK(read_int(id, 1, cols) == bad_int); // column overflow
+		CHECK(read_int(-1, 1, 1) == bad_int);	   // negative table id
+		CHECK(read_int(id + 1, 1, 1) == bad_int);  // non-existing table
+		CHECK(read_int(id, -1, 1) == bad_int);	   // negative row
+		CHECK(read_int(id, rows, 1) == bad_int);   // row overflow
+		CHECK(read_int(id, 1, -1) == bad_int);	   // negative column
+		CHECK(read_int(id, 1, cols) == bad_int);   // column overflow
 
 		const auto v1_2 = interpolate(id, 1.2, 0, 1);
 		CHECK(v1_2 == approx(5.2));

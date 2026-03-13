@@ -9,7 +9,7 @@
 #include <string>  // to_string/MSVC
 #include <format>
 
-#include <cmath>   // nan
+#include <cmath>  // nan
 
 /// creates a new table rows x cols and populates with zeros
 C_PUBLIC int table_new(int rows, int cols);
@@ -66,10 +66,7 @@ C_PUBLIC int table_new_double(int rows, int cols, double value)
 	return res;
 }
 
-C_PUBLIC int table_new(int rows, int cols)
-{
-	return table_new_double(rows, cols, 0.0);
-}
+C_PUBLIC int table_new(int rows, int cols) { return table_new_double(rows, cols, 0.0); }
 
 C_PUBLIC int table_new_int(int rows, int cols, int value)
 {
@@ -213,7 +210,7 @@ static auto& get_table_row(int id, int row)
 {
 	auto& table = get_table(id);
 	if (row < 0)
-		throw std::underflow_error{std::format("negative row: {}",row)};
+		throw std::underflow_error{std::format("negative row: {}", row)};
 	if (static_cast<int>(table.size()) <= row)
 		throw std::overflow_error{std::format("row overflow: {}", row)};
 	return table[static_cast<size_t>(row)];
@@ -292,7 +289,10 @@ C_PUBLIC int write_double(int id, int row, int col, double value)
 	return -1;
 }
 
-C_PUBLIC int write_int(int id, int row, int col, int value) { return write_double(id, row, col, value); }
+C_PUBLIC int write_int(int id, int row, int col, int value)
+{
+	return write_double(id, row, col, value);
+}
 
 C_PUBLIC double interpolate(int id, double key, int key_col, int value_col)
 {
@@ -314,7 +314,8 @@ C_PUBLIC int read_int_col(int id, int row, int col, int* items, int offset, int 
 		if (row < 0)
 			throw std::underflow_error{std::format("negative row: {}", row)};
 		if (row + count > static_cast<int>(table.size()))
-			throw std::overflow_error{std::format("row+count {} is beyond number of rows", row+count)};
+			throw std::overflow_error{
+				std::format("row+count {} is beyond number of rows", row + count)};
 		if (col < 0)
 			throw std::underflow_error{std::format("negative column {}", col)};
 		if (col >= static_cast<int>(table[static_cast<size_t>(row)].size()))
@@ -346,10 +347,12 @@ C_PUBLIC int read_int_row(int id, int row, int col, int* items, int offset, int 
 		if (col < 0)
 			throw std::underflow_error{std::format("negative column {}", col)};
 		if (col + count > static_cast<int>(table[static_cast<size_t>(row)].size()))
-			throw std::overflow_error{std::format("col+count {} is beyond table size", col+count)};
+			throw std::overflow_error{
+				std::format("col+count {} is beyond table size", col + count)};
 		auto rb = std::next(std::begin(table), row);
 		for (auto i = size_t{0}; i < static_cast<size_t>(count); ++i)
-			items[static_cast<size_t>(offset) + i] = static_cast<int>((*rb)[static_cast<size_t>(col) + i]);
+			items[static_cast<size_t>(offset) + i] =
+				static_cast<int>((*rb)[static_cast<size_t>(col) + i]);
 		return 0;
 	} catch (const std::exception& e [[maybe_unused]]) {
 		log_err("%s", e.what());
