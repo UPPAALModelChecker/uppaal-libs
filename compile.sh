@@ -121,15 +121,7 @@ for target in $targets ; do
     extension=so
     SANITIZE="-DSSP=ON -DUBSAN=ON -DASAN=ON"
     ;;
-  macos64-brew-gcc10)
-    extension=dylib
-    SANITIZE="-DSSP=ON"
-    ;;
-  macos64-brew-gcc11)
-    extension=dylib
-    SANITIZE="-DSSP=ON"
-    ;;
-  macos64-brew-gcc12)
+  macos64-brew-gcc*)
     extension=dylib
     SANITIZE="-DSSP=ON"
     ;;
