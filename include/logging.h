@@ -8,21 +8,21 @@
 
 #include "dynlib.h"
 
-#ifndef NDEBUG
+#ifdef LOGGING
 #ifdef _WIN32
 #define log_err(format, ...) log_error(__FUNCTION__, __FILE__, __LINE__, format, __VA_ARGS__)
 #else  // not _WIN32
 #define log_err(format, ...) \
 	log_error(__FUNCTION__, __FILE__, __LINE__, format __VA_OPT__(, ) __VA_ARGS__)
 #endif	// _WIN32
-#else	// with NDEBUG
+#else	// no LOGGING
 #define log_err(format, ...)
-#endif	// NDEBUG
+#endif	// LOGGING
 
 /// Set the file path for errors, returns 0 always
-C_PUBLIC int set_error_path(const char* err_path);
+C_PUBLIC int set_log_path(const char* err_path);
 /// Returns the path to the log file, "error.log" by default
-C_PUBLIC const char* get_error_path();
+C_PUBLIC const char* get_log_path();
 
 void log_error(const char* function, const char* path, int line, const char* format, ...);
 

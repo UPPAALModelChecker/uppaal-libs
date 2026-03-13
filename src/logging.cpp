@@ -13,18 +13,18 @@
 static auto error_own = false;	// do we own the error file?
 static auto error_path = std::string{"error.log"};
 
-C_PUBLIC int set_error_path(const char* path)
+C_PUBLIC int set_log_path(const char* path)
 {
 	error_path = path;
 	error_own = false;
 	return 0;
 }
 
-C_PUBLIC const char* get_error_path() { return error_path.c_str(); }
+C_PUBLIC const char* get_log_path() { return error_path.c_str(); }
 
 static FILE* open_log_file()
 {
-	const auto path = get_error_path();
+	const auto path = get_log_path();
 	FILE* file = nullptr;
 #ifdef __STDC_LIB_EXT1__
 	auto err = errno_t{};
@@ -40,9 +40,9 @@ static FILE* open_log_file()
 	}
 #else
 	if (error_own) {
-		file = std::fopen(get_error_path(), "a");
+		file = std::fopen(get_log_path(), "a");
 	} else {
-		file = std::fopen(get_error_path(), "w");
+		file = std::fopen(get_log_path(), "w");
 		error_own = true;
 	}
 	if (file == nullptr) {
