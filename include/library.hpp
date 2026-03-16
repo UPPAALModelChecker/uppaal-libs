@@ -2,8 +2,8 @@
  * C++ wrapper for opening dynamically linked libraries
  * Author: Marius Mikucionis <marius@cs.aau.dk>
  */
-#ifndef _LIBRARY_HPP_
-#define _LIBRARY_HPP_
+#ifndef INCLUDE_LIBRARY_HPP
+#define INCLUDE_LIBRARY_HPP
 
 #include <string>	  // to_string
 #include <stdexcept>  // runtime_error
@@ -13,11 +13,8 @@
 
 /** Wrapper for opening Library files.
  * Methods may throw runtime_error upon errors. */
-class Library
+struct Library
 {
-	void* handle;  // library handle
-
-public:
 	Library(const char* filepath): handle{dlopen(filepath, RTLD_LAZY | RTLD_LOCAL)}
 	{
 		if (!handle)
@@ -35,26 +32,25 @@ public:
 	 *   auto fn = lib.lookup<fn_type>(fn_name);
 	 *   fn(arg1, arg2);
 	 * Where fn_type ::= return_type (*)(arg1_type, arg2_type);
-	 * */
+	 */
 	template <typename FnType>
 	FnType lookup(const char* fn_name)
 	{
-		auto res = (FnType)(dlsym(handle, fn_name));
-		if (res == nullptr)
-			throw std::runtime_error(dlerror());
-		return res;
+		if (auto res = reinterpret_cast<FnType>(dlsym(handle, fn_name)); res)
+			return res;
+		throw std::runtime_error{dlerror()};
 	}
+
+private:
+	void* handle{};	 ///< library handle
 };
 
 #elif defined(_WIN32) || defined(__MINGW32__)
 #include <system_error>
 #include <windows.h>
 
-class Library
+struct Library
 {
-	HMODULE handle;	 // library handle
-
-public:
 	Library(const char* filepath): handle{LoadLibrary(TEXT(filepath))}
 	{
 		if (!handle) {
@@ -78,16 +74,17 @@ public:
 	template <typename FnType>
 	FnType lookup(const char* fn_name)
 	{
-		auto res = reinterpret_cast<FnType>(GetProcAddress(handle, fn_name));
-		if (res == nullptr)
-			throw std::runtime_error{"Failed symbol lookup with error " +
-									 std::to_string(GetLastError())};
-		return res;
+		if (auto res = reinterpret_cast<FnType>(GetProcAddress(handle, fn_name)); res != nullptr)
+			return res;
+		throw std::runtime_error{"Failed symbol lookup: " + std::to_string(GetLastError())};
 	}
+
+private:
+	HMODULE handle{};  ///< library handle
 };
 
 #else
 #error "unsupported platform"
 #endif
 
-#endif /* _LIBRARY_HPP_ */
+#endif /* INCLUDE_LIBRARY_HPP */

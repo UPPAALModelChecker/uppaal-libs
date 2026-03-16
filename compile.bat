@@ -2,36 +2,35 @@
 
 erase /F /S /Q libtable.dll libtable-dbg.dll > NUL
 
-set BUILD_TYPE=Release
-set BUILD_DIR=build-release
+set CMAKE_BUILD_PARALLEL_LEVEL=%NUMBER_OF_PROCESSORS%
+set CTEST_PARALLEL_LEVEL=%NUMBER_OF_PROCESSORS%
+set CTEST_TEST_LOAD=%NUMBER_OF_PROCESSORS%
+set CTEST_OUTPUT_ON_FAILURE=1
 
-echo Compiling %BUILD_TYPE% in %BUILD_DIR%
-cmake -B %BUILD_DIR% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% .
+set CMAKE_BUILD_TYPE=Debug
+set BUILD_DIR=build-%CMAKE_BUILD_TYPE%
+echo Compiling %CMAKE_BUILD_TYPE% in %BUILD_DIR%
+cmake -B %BUILD_DIR% -DCMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE% .
 if %ERRORLEVEL% NEQ 0 goto Failure
-cmake --build %BUILD_DIR% --config %BUILD_TYPE%
+cmake --build %BUILD_DIR% --config %CMAKE_BUILD_TYPE%
 if %ERRORLEVEL% NEQ 0 goto Failure
-cd %BUILD_DIR%
-ctest --build-config %BUILD_TYPE% --output-on-failure
+ctest --test-dir %BUILD_DIR% --build-config %CMAKE_BUILD_TYPE%
 if %ERRORLEVEL% NEQ 0 goto Failure
-cd ..
-copy %cd%\%BUILD_DIR%\src\%BUILD_TYPE%\table.dll %cd%\libtable.dll
+copy %cd%\%BUILD_DIR%\src\%CMAKE_BUILD_TYPE%\table.dll %cd%\libtable-dbg.dll
+echo SUCCESS building debug into libtable-dbg.dll
+
+set CMAKE_BUILD_TYPE=Release
+set BUILD_DIR=build-%CMAKE_BUILD_TYPE%
+echo Compiling %CMAKE_BUILD_TYPE% in %BUILD_DIR%
+cmake -B %BUILD_DIR% -DCMAKE_BUILD_TYPE=%CMAKE_BUILD_TYPE% .
+if %ERRORLEVEL% NEQ 0 goto Failure
+cmake --build %BUILD_DIR% --config %CMAKE_BUILD_TYPE%
+if %ERRORLEVEL% NEQ 0 goto Failure
+ctest --test-dir %BUILD_DIR% --build-config %CMAKE_BUILD_TYPE% --output-on-failure
+if %ERRORLEVEL% NEQ 0 goto Failure
+copy %cd%\%BUILD_DIR%\src\%CMAKE_BUILD_TYPE%\table.dll %cd%\libtable.dll
 echo SUCCESS building release into libtable.dll
 
-
-set BUILD_TYPE=Debug
-set BUILD_DIR=build-debug
-
-echo Compiling %BUILD_TYPE% in %BUILD_DIR%
-cmake -B %BUILD_DIR% -DCMAKE_BUILD_TYPE=%BUILD_TYPE% .
-if %ERRORLEVEL% NEQ 0 goto Failure
-cmake --build %BUILD_DIR% --config %BUILD_TYPE%
-if %ERRORLEVEL% NEQ 0 goto Failure
-cd %BUILD_DIR%
-ctest --build-config %BUILD_TYPE% --output-on-failure
-if %ERRORLEVEL% NEQ 0 goto Failure
-cd ..
-copy %cd%\%BUILD_DIR%\src\%BUILD_TYPE%\table.dll %cd%\libtable-dbg.dll
-echo SUCCESS building debug into libtable-dbg.dll
 start "" "%cd%"
 
 pause

@@ -1,4 +1,4 @@
-#include "errors.hpp"
+#include "logging.h"
 
 #include <algorithm>  // hack to fix doctest for MSVC
 #include <doctest/doctest.h>
@@ -8,15 +8,17 @@
 
 TEST_CASE("Error message")
 {
-	set_error_path("test_errors.log");
+	CHECK(get_log_path() == std::string_view{"error.log"});
+	set_log_path("logging_test.log");
+	const auto error_path = get_log_path();
+	REQUIRE_MESSAGE(error_path != nullptr, "Failed to get log path");
+#ifdef LOGGING
 	log_err("Testing: %s %d %f", "errors", 42, 3.141);
-	const auto error_path = get_error_path();
-	REQUIRE(error_path != nullptr);
 	auto is = std::ifstream{error_path};
-	REQUIRE(static_cast<bool>(is));
-	const auto buffer =
-		std::string{std::istreambuf_iterator<char>{is}, std::istreambuf_iterator<char>{}};
-	auto content = std::string_view{buffer};
+	REQUIRE_MESSAGE(static_cast<bool>(is), (std::string{"Failed to read "}+error_path));
+	using isbit = std::istreambuf_iterator<char>;
+	const auto buffer = std::string{isbit{is}, isbit{}};
+	const auto content = std::string_view{buffer};
 	REQUIRE(static_cast<bool>(is));
 	const auto message_pos = content.find(" ");
 	REQUIRE(message_pos != std::string_view::npos);
@@ -26,8 +28,9 @@ TEST_CASE("Error message")
 	CHECK(message == "Testing: errors 42 3.141000");
 	const auto at_pos = content.find(" at ", in_pos + 1);
 	REQUIRE(at_pos != std::string_view::npos);
-	const auto test_errors_pos = content.find("test_errors.cpp", at_pos + 4);
+	const auto test_errors_pos = content.find("logging_test.cpp", at_pos + 4);
 	REQUIRE(test_errors_pos != std::string_view::npos);
 	const auto location = content.substr(test_errors_pos);
-	CHECK(location == "test_errors.cpp:12\n");
+	CHECK(location == "logging_test.cpp:16\n");
+#endif // LOGGING
 }

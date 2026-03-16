@@ -2,7 +2,7 @@
  * Error reporting
  * Author: Marius Mikucionis <marius@cs.aau.dk>
  */
-#include "errors.hpp"
+#include "logging.h"
 
 #include <string>
 #include <chrono>
@@ -13,18 +13,18 @@
 static auto error_own = false;	// do we own the error file?
 static auto error_path = std::string{"error.log"};
 
-C_PUBLIC int set_error_path(const char* path)
+C_PUBLIC int set_log_path(const char* path)
 {
 	error_path = path;
 	error_own = false;
 	return 0;
 }
 
-C_PUBLIC const char* get_error_path() { return error_path.c_str(); }
+C_PUBLIC const char* get_log_path() { return error_path.c_str(); }
 
-FILE* open_error_file()
+static FILE* open_log_file()
 {
-	const auto path = get_error_path();
+	const auto path = get_log_path();
 	FILE* file = nullptr;
 #ifdef __STDC_LIB_EXT1__
 	auto err = errno_t{};
@@ -40,9 +40,9 @@ FILE* open_error_file()
 	}
 #else
 	if (error_own) {
-		file = std::fopen(get_error_path(), "a");
+		file = std::fopen(get_log_path(), "a");
 	} else {
-		file = std::fopen(get_error_path(), "w");
+		file = std::fopen(get_log_path(), "w");
 		error_own = true;
 	}
 	if (file == nullptr) {
@@ -54,8 +54,9 @@ FILE* open_error_file()
 
 void log_error(const char* function, const char* path, int line, const char* format, ...)
 {
-	auto file = open_error_file();
-	const auto time = std::chrono::system_clock::now().time_since_epoch();
+	auto file = open_log_file();
+	using Clock = std::chrono::system_clock;
+	const auto time = Clock::now().time_since_epoch();
 	const auto sec = std::chrono::duration_cast<std::chrono::seconds>(time);
 	const auto usec = std::chrono::duration_cast<std::chrono::microseconds>(time - sec);
 #if (defined(__APPLE__) && defined(__MACH__)) || defined(_WIN32)
