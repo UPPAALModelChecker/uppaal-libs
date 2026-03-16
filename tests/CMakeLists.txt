@@ -1,4 +1,7 @@
 add_executable(table_test table_test.cpp)
+target_compile_definitions(table_test PUBLIC
+        LIBTABLE_PATH=$<TARGET_FILE:table>
+        CSV_PATH=${CMAKE_SOURCE_DIR}/examples/table_input.csv)
 target_link_libraries(table_test PRIVATE doctest::doctest_with_main)
 add_dependencies(table_test table)
 add_test(NAME table_test COMMAND table_test)

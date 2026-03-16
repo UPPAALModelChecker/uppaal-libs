@@ -13,38 +13,23 @@
 
 TEST_SUITE_BEGIN("libtable");
 
-#if defined(__linux__)
-const auto libtable_path = std::filesystem::current_path() / ".." / "src" / "libtable.so";
-const auto csv_path = std::filesystem::current_path() / ".." / ".." / "examples" / "table_input.csv";
-#elif defined(__APPLE__)
-const auto libtable_path = std::filesystem::current_path() / ".." / "src" / "libtable.dylib";
-const auto csv_path = std::filesystem::current_path() / ".." / ".." / "examples" / "table_input.csv";
-#elif defined(__MINGW32__)
-const auto libtable_path = std::filesystem::current_path() / ".." / "src" / "libtable.dll";
-const auto csv_path = std::filesystem::current_path() / ".." / ".." / "examples" / "table_input.csv";
-#elif defined(_WIN32)
-const auto libtable_path = [] {
-	// CMake on Windows puts Release binaries into CMAKE_CURRENT_BINARY_DIR/Release
-	// otherwise binaries are in CMAKE_CURRENT_BINARY_DIR
-	auto buffer = std::string(1024, '\0');
-	auto size = GetModuleFileNameA(
-		NULL, buffer.data(), static_cast<DWORD>(buffer.size()));  // path to current executable
-	while (size >= buffer.size()) {
-		buffer.resize(buffer.size() * 2, '\0');
-		size = GetModuleFileNameA(NULL, buffer.data(), static_cast<DWORD>(buffer.size()));
-	}
-	buffer.resize(size);  // truncate the path
-	return std::filesystem::path{buffer}.parent_path() / ".." / "src" / "table.dll";
-}();
-const auto csv_path =
-	std::filesystem::current_path() / ".." / ".." / ".." / ".." / "examples" / "table_input.csv";
-#else
-#error ("Unknown platform")
+#ifndef LIBTABLE_PATH
+#error "Please define LIBTABLE_PATH to path to the dynamic library of table"
 #endif
+#ifndef CSV_PATH
+#error "Please define CSV_PATH to path to the example csv file"
+#endif
+
+#define STRINGIFY(x) #x
+#define TO_STRING(x)  STRINGIFY(x)
+
+using std::filesystem::path;
+using std::filesystem::exists; // MSVC fails to do ADL
+const path libtable_path = TO_STRING(LIBTABLE_PATH);
+const path csv_path = TO_STRING(CSV_PATH);
 
 TEST_CASE("load libtable")
 {
-	using std::filesystem::exists; // MSVC fails to do ADL
 	REQUIRE_MESSAGE(exists(libtable_path), ("Failed to find " + libtable_path.string()));
 	REQUIRE_MESSAGE(exists(csv_path), ("Failed to find " + csv_path.string()));
 
@@ -63,7 +48,6 @@ TEST_CASE("load libtable")
 
 	try {
 		auto lib_path_str = libtable_path.string();
-		std::cout << "Loading " << lib_path_str << std::endl;
 		auto lib = Library{lib_path_str.c_str()};  // may throw upon errors
 		auto table_new_int [[maybe_unused]] = lib.lookup<fn_int_int_int_to_int>("table_new_int");
 		auto table_new_double = lib.lookup<fn_int_int_double_to_int>("table_new_double");
@@ -94,11 +78,14 @@ TEST_CASE("load libtable")
 		CHECK(table_cols(id + 1) == -1);  // non-existing table
 
 		// read access:
+		auto os = std::ostringstream{};
 		for (int row = 0; row < rows; ++row) {
-			for (int col = 0; col < cols; ++col)
-				std::cout << read_double(id, row, col) << " ";
-			std::cout << '\n';
+			os << read_double(id, row, 0);
+			for (int col = 1; col < cols; ++col)
+				os << " " << read_double(id, row, col);
+			os << '\n';
 		}
+		CHECK(os.str() == "1 5 9 1\n2 6 10 4\n3 7 11 9\n4 8 12 16\n");
 		CHECK(6 == read_double(id, 1, 1));
 		// bad arguments:
 		CHECK(std::isnan(read_double(-1, 1, 1)));	   // negative table id
