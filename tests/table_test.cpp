@@ -10,6 +10,7 @@
 #include <vector>
 #include <filesystem>
 #include <iostream>
+#include <sstream>
 
 TEST_SUITE_BEGIN("libtable");
 
